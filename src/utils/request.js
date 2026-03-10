@@ -23,15 +23,15 @@ request.interceptors.request.use(
 )
 
 // ── 响应拦截器 ────────────────────────────────
+// 成功时直接返回 res.data，调用方无需再手动取 .data
 request.interceptors.response.use(
   (response) => {
     const res = response.data
-    // 业务状态码约定：code === 0 或 200 为成功，可根据实际接口调整
-    if (res.code !== undefined && res.code !== 0 && res.code !== 200) {
-      ElMessage.error(res.message || '请求失败')
-      return Promise.reject(new Error(res.message || '请求失败'))
+    if (res.errorCode !== undefined && res.errorCode !== 0) {
+      ElMessage.error(res.errorMsg || '请求失败')
+      return Promise.reject(new Error(res.errorMsg || '请求失败'))
     }
-    return res
+    return res.data !== undefined ? res.data : res
   },
   (error) => {
     if (error.response) {

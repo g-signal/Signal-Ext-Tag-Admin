@@ -11,7 +11,7 @@
       <!-- ===== Left: Tag List ===== -->
       <div class="panel panel-list">
         <div class="panel-head">
-          <span>标签列表 <em class="tag-count">{{ tagsStore.tags.length }}</em></span>
+          <span>标签列表 <em class="tag-count">{{ tags.length }}</em></span>
           <el-button size="small" type="primary" :icon="Plus" @click="startAddTag">
             添加
           </el-button>
@@ -42,7 +42,7 @@
               </el-tooltip>
             </div>
           </div>
-          <div v-if="!tagsStore.tags.length && !isNewTag" class="list-empty">
+          <div v-if="!tags.length && !isNewTag" class="list-empty">
             <el-icon style="font-size: 28px; color: #dcdfe6;"><CollectionTag /></el-icon>
             <p>暂无标签</p>
             <p>点击「添加」创建标签</p>
@@ -247,6 +247,18 @@
             </div>
           </template>
 
+          <div class="field-row">
+            <span class="field-label">优先级</span>
+            <el-input-number
+              v-model="currentTag.priority"
+              :min="0"
+              controls-position="right"
+              size="small"
+              style="width: 120px"
+            />
+            <span class="field-unit" style="color: #c0c4cc;">越小越优先</span>
+          </div>
+
           <div class="editor-actions">
             <el-button @click="cancelEdit" :icon="Close">取消</el-button>
             <el-button type="primary" @click="saveTag" :icon="Check">
@@ -384,37 +396,81 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Plus, Delete, Edit as EditIcon, Close, Check, Refresh,
   Upload, Picture, Memo, EditPen, CollectionTag, View
 } from '@element-plus/icons-vue'
 import TagDisplay from '@/components/TagDisplay.vue'
-import { useTagsStore } from '@/stores/tags'
-import { useUsersStore } from '@/stores/users'
-import { useGroupsStore } from '@/stores/groups'
+import { getTagList, createTag, updateTag, deleteTag } from '@/api/tag'
 import { hexToRgba } from '@/utils/color'
 
-const tagsStore = useTagsStore()
-const usersStore = useUsersStore()
-const groupsStore = useGroupsStore()
+function apiToStore(t) {
+  return {
+    id: String(t.id),
+    name: t.name || '',
+    type: t.type === 0 ? 'text' : 'image',
+    text: t.text || '',
+    color: t.color || '#ffffff',
+    background_color: t.backgroundColor || '#409eff',
+    opacity: t.opacity ?? 1,
+    img_base64: t.imgBase64 || '',
+    border_width: t.borderWidth || 0,
+    border_radius: t.borderRadius ?? 4,
+    border_color: t.borderColor || '',
+    border_style: t.borderStyle || 'solid',
+    priority: t.priority ?? 0
+  }
+}
+
+function storeToApi(t) {
+  return {
+    name: t.name,
+    type: t.type === 'text' ? 0 : 1,
+    text: t.type === 'text' ? t.text : null,
+    imgBase64: t.type === 'image' ? t.img_base64 : null,
+    backgroundColor: t.background_color || null,
+    color: t.color || null,
+    opacity: t.opacity ?? 1,
+    borderWidth: t.border_width || null,
+    borderRadius: t.border_radius || null,
+    borderColor: t.border_color || null,
+    borderStyle: t.border_style || null,
+    priority: t.priority ?? 0
+  }
+}
+
+const tags = ref([])
+const loading = ref(false)
+
+async function fetchTags() {
+  loading.value = true
+  try {
+    const data = await getTagList()
+    tags.value = (data || []).map(apiToStore)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchTags()
+})
 
 const currentTag = ref(null)
 const isNewTag = ref(false)
 
-// displayTags: reflects currentTag edits in real time in the list
 const displayTags = computed(() => {
-  if (!currentTag.value || isNewTag.value) return tagsStore.tags
-  return tagsStore.tags.map(t =>
+  if (!currentTag.value || isNewTag.value) return tags.value
+  return tags.value.map(t =>
     t.id === currentTag.value.id ? { ...currentTag.value } : t
   )
 })
 
-// Combined preview: other saved tags + current editing tag
 const allPreviewTags = computed(() => {
-  if (!currentTag.value) return tagsStore.tags
-  const others = tagsStore.tags.filter(t => t.id !== currentTag.value.id)
+  if (!currentTag.value) return tags.value
+  const others = tags.value.filter(t => t.id !== currentTag.value.id)
   return [...others, currentTag.value]
 })
 
@@ -431,7 +487,8 @@ function makeDefaultTag() {
     border_width: 0,
     border_radius: 4,
     border_color: '#409eff',
-    border_style: 'solid'
+    border_style: 'solid',
+    priority: 0
   }
 }
 
@@ -460,9 +517,8 @@ function handleImageChange(file) {
   reader.readAsDataURL(file.raw)
 }
 
-function saveTag() {
+async function saveTag() {
   if (!currentTag.value) return
-
   if (currentTag.value.type === 'text' && !currentTag.value.text.trim()) {
     ElMessage.warning('请输入标签内容')
     return
@@ -472,16 +528,23 @@ function saveTag() {
     return
   }
 
-  if (isNewTag.value) {
-    const saved = tagsStore.addTag({ ...currentTag.value })
-    currentTag.value = { ...saved }
-    isNewTag.value = false
-    ElMessage.success('标签已创建')
-  } else {
-    tagsStore.updateTag(currentTag.value.id, { ...currentTag.value })
-    currentTag.value = { ...currentTag.value }
-    ElMessage.success('标签已保存')
-  }
+  try {
+    if (isNewTag.value) {
+      const apiTag = await createTag(storeToApi(currentTag.value))
+      const saved = apiToStore(apiTag)
+      tags.value.push(saved)
+      currentTag.value = { ...saved }
+      isNewTag.value = false
+      ElMessage.success('标签已创建')
+    } else {
+      const apiTag = await updateTag(currentTag.value.id, storeToApi(currentTag.value))
+      const saved = apiToStore(apiTag)
+      const idx = tags.value.findIndex(t => t.id === currentTag.value.id)
+      if (idx !== -1) tags.value[idx] = saved
+      currentTag.value = { ...saved }
+      ElMessage.success('标签已保存')
+    }
+  } catch {}
 }
 
 function cancelEdit() {
@@ -489,21 +552,14 @@ function cancelEdit() {
     currentTag.value = null
     isNewTag.value = false
   } else {
-    const original = tagsStore.getTagById(currentTag.value?.id)
+    const original = tags.value.find(t => t.id === currentTag.value?.id)
     currentTag.value = original ? { ...original } : null
   }
 }
 
 function handleDelete(id) {
-  // Count usages
-  const userCount = usersStore.users.filter(u => u.tagIds.includes(id)).length
-  const groupCount = groupsStore.groups.filter(g => g.tagIds.includes(id)).length
-  const usageText = (userCount + groupCount > 0)
-    ? `\n\n该标签已被 ${userCount} 个用户、${groupCount} 个群组引用，删除后将自动移除引用。`
-    : ''
-
   ElMessageBox.confirm(
-    `确认删除该标签？此操作不可撤销。${usageText}`,
+    '确认删除该标签？此操作不可撤销。',
     '删除确认',
     {
       confirmButtonText: '确认删除',
@@ -511,15 +567,16 @@ function handleDelete(id) {
       confirmButtonClass: 'el-button--danger',
       type: 'warning'
     }
-  ).then(() => {
-    usersStore.removeTagRef(id)
-    groupsStore.removeTagRef(id)
-    tagsStore.deleteTag(id)
-    if (currentTag.value?.id === id) {
-      currentTag.value = null
-      isNewTag.value = false
-    }
-    ElMessage.success('标签已删除')
+  ).then(async () => {
+    try {
+      await deleteTag(id)
+      tags.value = tags.value.filter(t => t.id !== id)
+      if (currentTag.value?.id === id) {
+        currentTag.value = null
+        isNewTag.value = false
+      }
+      ElMessage.success('标签已删除')
+    } catch {}
   }).catch(() => {})
 }
 </script>

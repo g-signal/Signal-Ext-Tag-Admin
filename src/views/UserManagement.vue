@@ -8,7 +8,7 @@
       <el-button type="primary" :icon="Plus" @click="openAddDialog">添加用户</el-button>
     </div>
 
-    <el-table :data="usersStore.users" border stripe class="data-table">
+    <el-table :data="users" v-loading="loading" border stripe class="data-table">
       <el-table-column prop="id" label="ID" width="130">
         <template #default="{ row }">
           <span class="mono-text">{{ row.id }}</span>
@@ -23,13 +23,8 @@
       <el-table-column label="标签" min-width="220">
         <template #default="{ row }">
           <div class="tag-cell">
-            <template v-for="tagId in row.tagIds" :key="tagId">
-              <TagDisplay
-                v-if="tagsStore.getTagById(tagId)"
-                :tag="tagsStore.getTagById(tagId)"
-              />
-            </template>
-            <span v-if="!resolvedTags(row).length" class="empty-tag-hint">暂无标签</span>
+            <TagDisplay v-for="tag in row.tags" :key="tag.id" :tag="tag" />
+            <span v-if="!row.tags?.length" class="empty-tag-hint">暂无标签</span>
           </div>
         </template>
       </el-table-column>
@@ -89,7 +84,7 @@
           />
         </el-form-item>
         <el-form-item label="标签">
-          <TagSelector v-model="addForm.tagIds" />
+          <TagSelector v-model="addForm.tagIds" :options="tagOptions" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -129,7 +124,7 @@
           />
         </el-form-item>
         <el-form-item label="标签">
-          <TagSelector v-model="editForm.tagIds" />
+          <TagSelector v-model="editForm.tagIds" :options="tagOptions" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -141,20 +136,64 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete, Edit as EditIcon } from '@element-plus/icons-vue'
-import { useUsersStore } from '@/stores/users'
-import { useTagsStore } from '@/stores/tags'
+import { getUserList, createUser, updateUser, deleteUser as apiDeleteUser } from '@/api/user'
+import { getTagList } from '@/api/tag'
 import TagDisplay from '@/components/TagDisplay.vue'
 import TagSelector from '@/components/TagSelector.vue'
 
-const usersStore = useUsersStore()
-const tagsStore = useTagsStore()
-
-function resolvedTags(row) {
-  return (row.tagIds || []).map(id => tagsStore.getTagById(id)).filter(Boolean)
+function apiTagToStore(t) {
+  return {
+    id: String(t.id),
+    name: t.name || '',
+    type: t.type === 0 ? 'text' : 'image',
+    text: t.text || '',
+    color: t.color || '#ffffff',
+    background_color: t.backgroundColor || '#409eff',
+    opacity: t.opacity ?? 1,
+    img_base64: t.imgBase64 || '',
+    border_width: t.borderWidth || 0,
+    border_radius: t.borderRadius ?? 4,
+    border_color: t.borderColor || '',
+    border_style: t.borderStyle || 'solid',
+    priority: t.priority ?? 0
+  }
 }
+
+function apiUserToLocal(u) {
+  return {
+    id: u.id,
+    phone: u.phoneNumber || '',
+    remark: u.remark || '',
+    tags: (u.tags || []).map(apiTagToStore),
+    tagIds: (u.tags || []).map(t => String(t.id))
+  }
+}
+
+const users = ref([])
+const loading = ref(false)
+const tagOptions = ref([])
+
+async function fetchUsers() {
+  loading.value = true
+  try {
+    const data = await getUserList()
+    users.value = (data || []).map(apiUserToLocal)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  fetchUsers()
+  try {
+    const data = await getTagList()
+    tagOptions.value = (data || []).map(apiTagToStore)
+  } catch {}
+})
+
 
 // ── Add dialog ────────────────────────────────
 const addDialogVisible = ref(false)
@@ -175,21 +214,32 @@ function openAddDialog() {
 }
 
 function confirmAdd() {
-  addFormRef.value.validate((valid) => {
+  addFormRef.value.validate(async (valid) => {
     if (!valid) return
-    if (usersStore.users.some(u => u.id === addForm.id)) {
+    if (users.value.some(u => u.id === addForm.id)) {
       ElMessage.warning('用户 ID 已存在')
       return
     }
-    usersStore.addUser({ ...addForm, tagIds: [...addForm.tagIds] })
-    ElMessage.success('添加成功')
-    addDialogVisible.value = false
+    try {
+      await createUser({
+        id: addForm.id,
+        phoneNumber: addForm.phone,
+        remark: addForm.remark,
+        tagIds: [...addForm.tagIds]
+      })
+      ElMessage.success('添加成功')
+      addDialogVisible.value = false
+      await fetchUsers()
+    } catch {}
   })
 }
 
-function deleteUser(id) {
-  usersStore.deleteUser(id)
-  ElMessage.success('已删除')
+async function deleteUser(id) {
+  try {
+    await apiDeleteUser(id)
+    users.value = users.value.filter(u => u.id !== id)
+    ElMessage.success('已删除')
+  } catch {}
 }
 
 // ── Edit dialog ───────────────────────────────
@@ -215,15 +265,18 @@ function openEditDialog(row) {
 }
 
 function confirmEdit() {
-  editFormRef.value.validate((valid) => {
+  editFormRef.value.validate(async (valid) => {
     if (!valid) return
-    usersStore.updateUser(editForm.id, {
-      phone: editForm.phone,
-      remark: editForm.remark,
-      tagIds: [...editForm.tagIds]
-    })
-    ElMessage.success('修改已保存')
-    editDialogVisible.value = false
+    try {
+      await updateUser(editForm.id, {
+        phoneNumber: editForm.phone,
+        remark: editForm.remark,
+        tagIds: [...editForm.tagIds]
+      })
+      ElMessage.success('修改已保存')
+      editDialogVisible.value = false
+      await fetchUsers()
+    } catch {}
   })
 }
 </script>

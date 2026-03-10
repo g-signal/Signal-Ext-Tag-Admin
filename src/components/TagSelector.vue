@@ -1,13 +1,13 @@
 <template>
   <div class="tag-selector">
-    <div v-if="tagsStore.tags.length === 0" class="no-tags-hint">
+    <div v-if="displayTags.length === 0" class="no-tags-hint">
       暂无可选标签，请先在
       <router-link to="/admin/tags" @click.stop>Tag 管理</router-link>
       中创建标签
     </div>
     <div v-else class="tag-options">
       <div
-        v-for="tag in tagsStore.tags"
+        v-for="tag in displayTags"
         :key="tag.id"
         class="tag-option"
         :class="{ 'is-selected': modelValue.includes(tag.id) }"
@@ -24,20 +24,24 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Check } from '@element-plus/icons-vue'
 import TagDisplay from '@/components/TagDisplay.vue'
-import { useTagsStore } from '@/stores/tags'
-
-const tagsStore = useTagsStore()
 
 const props = defineProps({
   modelValue: {
+    type: Array,
+    default: () => []
+  },
+  options: {
     type: Array,
     default: () => []
   }
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const displayTags = computed(() => props.options)
 
 function toggle(tagId) {
   const current = [...props.modelValue]

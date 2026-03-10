@@ -8,7 +8,7 @@
       <el-button type="primary" :icon="Plus" @click="openAddDialog">添加群组</el-button>
     </div>
 
-    <el-table :data="groupsStore.groups" border stripe class="data-table">
+    <el-table :data="groups" v-loading="loading" border stripe class="data-table">
       <el-table-column prop="id" label="ID" width="130">
         <template #default="{ row }">
           <span class="mono-text">{{ row.id }}</span>
@@ -22,13 +22,8 @@
       <el-table-column label="标签" min-width="220">
         <template #default="{ row }">
           <div class="tag-cell">
-            <template v-for="tagId in row.tagIds" :key="tagId">
-              <TagDisplay
-                v-if="tagsStore.getTagById(tagId)"
-                :tag="tagsStore.getTagById(tagId)"
-              />
-            </template>
-            <span v-if="!resolvedTags(row).length" class="empty-tag-hint">暂无标签</span>
+            <TagDisplay v-for="tag in row.tags" :key="tag.id" :tag="tag" />
+            <span v-if="!row.tags?.length" class="empty-tag-hint">暂无标签</span>
           </div>
         </template>
       </el-table-column>
@@ -85,7 +80,7 @@
           />
         </el-form-item>
         <el-form-item label="标签">
-          <TagSelector v-model="addForm.tagIds" />
+          <TagSelector v-model="addForm.tagIds" :options="tagOptions" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -121,7 +116,7 @@
           />
         </el-form-item>
         <el-form-item label="标签">
-          <TagSelector v-model="editForm.tagIds" />
+          <TagSelector v-model="editForm.tagIds" :options="tagOptions" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -133,20 +128,63 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete, Edit as EditIcon } from '@element-plus/icons-vue'
-import { useGroupsStore } from '@/stores/groups'
-import { useTagsStore } from '@/stores/tags'
+import { getGroupList, createGroup, updateGroup, deleteGroup as apiDeleteGroup } from '@/api/group'
+import { getTagList } from '@/api/tag'
 import TagDisplay from '@/components/TagDisplay.vue'
 import TagSelector from '@/components/TagSelector.vue'
 
-const groupsStore = useGroupsStore()
-const tagsStore = useTagsStore()
-
-function resolvedTags(row) {
-  return (row.tagIds || []).map(id => tagsStore.getTagById(id)).filter(Boolean)
+function apiTagToStore(t) {
+  return {
+    id: String(t.id),
+    name: t.name || '',
+    type: t.type === 0 ? 'text' : 'image',
+    text: t.text || '',
+    color: t.color || '#ffffff',
+    background_color: t.backgroundColor || '#409eff',
+    opacity: t.opacity ?? 1,
+    img_base64: t.imgBase64 || '',
+    border_width: t.borderWidth || 0,
+    border_radius: t.borderRadius ?? 4,
+    border_color: t.borderColor || '',
+    border_style: t.borderStyle || 'solid',
+    priority: t.priority ?? 0
+  }
 }
+
+function apiGroupToLocal(g) {
+  return {
+    id: g.id,
+    remark: g.remark || '',
+    tags: (g.tags || []).map(apiTagToStore),
+    tagIds: (g.tags || []).map(t => String(t.id))
+  }
+}
+
+const groups = ref([])
+const loading = ref(false)
+const tagOptions = ref([])
+
+async function fetchGroups() {
+  loading.value = true
+  try {
+    const data = await getGroupList()
+    groups.value = (data || []).map(apiGroupToLocal)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  fetchGroups()
+  try {
+    const data = await getTagList()
+    tagOptions.value = (data || []).map(apiTagToStore)
+  } catch {}
+})
+
 
 // ── Add dialog ────────────────────────────────
 const addDialogVisible = ref(false)
@@ -163,21 +201,31 @@ function openAddDialog() {
 }
 
 function confirmAdd() {
-  addFormRef.value.validate((valid) => {
+  addFormRef.value.validate(async (valid) => {
     if (!valid) return
-    if (groupsStore.groups.some(g => g.id === addForm.id)) {
+    if (groups.value.some(g => g.id === addForm.id)) {
       ElMessage.warning('群组 ID 已存在')
       return
     }
-    groupsStore.addGroup({ ...addForm, tagIds: [...addForm.tagIds] })
-    ElMessage.success('添加成功')
-    addDialogVisible.value = false
+    try {
+      await createGroup({
+        id: addForm.id,
+        remark: addForm.remark,
+        tagIds: [...addForm.tagIds]
+      })
+      ElMessage.success('添加成功')
+      addDialogVisible.value = false
+      await fetchGroups()
+    } catch {}
   })
 }
 
-function deleteGroup(id) {
-  groupsStore.deleteGroup(id)
-  ElMessage.success('已删除')
+async function deleteGroup(id) {
+  try {
+    await apiDeleteGroup(id)
+    groups.value = groups.value.filter(g => g.id !== id)
+    ElMessage.success('已删除')
+  } catch {}
 }
 
 // ── Edit dialog ───────────────────────────────
@@ -195,12 +243,18 @@ function openEditDialog(row) {
 }
 
 function confirmEdit() {
-  groupsStore.updateGroup(editForm.id, {
-    remark: editForm.remark,
-    tagIds: [...editForm.tagIds]
+  editFormRef.value.validate(async (valid) => {
+    if (!valid) return
+    try {
+      await updateGroup(editForm.id, {
+        remark: editForm.remark,
+        tagIds: [...editForm.tagIds]
+      })
+      ElMessage.success('修改已保存')
+      editDialogVisible.value = false
+      await fetchGroups()
+    } catch {}
   })
-  ElMessage.success('修改已保存')
-  editDialogVisible.value = false
 }
 </script>
 

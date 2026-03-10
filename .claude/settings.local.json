@@ -19,7 +19,8 @@
       "Bash(ls \"D:\\\\wqj\\\\Work\\\\B&A\\\\BA-Signal-admin\\\\node_modules\\\\.bin\\\\\" | grep vite)",
       "Bash(cmd /c \"dir \\\\\"D:\\\\wqj\\\\Work\\\\B&A\\\\BA-Signal-admin\\\\node_modules\\\\.bin\\\\\" /b 2>&1 | findstr /i vite\")",
       "Bash(cmd /c \"where bash\")",
-      "Bash(which bash:*)"
+      "Bash(which bash:*)",
+      "Bash(cd \"D:\\\\wqj\\\\Work\\\\BA\\\\Signal-Ext-Tag-Admin\" && npm install axios)"
     ]
   }
 }
