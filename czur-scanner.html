@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Attendance BOT 聊天头部（最终优化版）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+        }
+
+        /* 聊天头部容器 - 优化内边距和高度 */
+        .chat-header {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            padding: 12px 16px; /* 更紧凑的内边距 */
+            height: 64px; /* 标准H5头部高度 */
+            border-bottom: 1px solid #e8e8e8;
+            position: relative;
+        }
+
+        /* 左侧返回按钮 - 优化点击区域和视觉 */
+        .back-btn {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px; /* 标准移动端点击区域 */
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .back-btn:hover {
+            background: #f0f0f0; /* 点击hover反馈 */
+        }
+
+        /* 返回箭头 - 优化线条粗细和颜色 */
+        .back-arrow {
+            width: 20px;
+            height: 20px;
+            stroke: #1a1a1a; /* 更深的箭头颜色 */
+            stroke-width: 2.2;
+            stroke-linecap: round; /* 圆角线条更精致 */
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        /* 角标 - 优化位置和视觉层级 */
+        .badge {
+            position: absolute;
+            top: -2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #d0d0d0; /* 更浅的边框 */
+            border-radius: 50%;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* 轻微阴影提升层级 */
+        }
+
+        /* 标题区域 - 保持居中，优化内边距 */
+        .title-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 56px; /* 适配44px点击区域的内边距 */
+        }
+
+        /* 标题行 - 优化间距 */
+        .title-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        /* 主标题 - 优化字体 */
+        .main-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-right: 8px;
+        }
+
+        /* BOT标签 - 优化圆角和内边距 */
+        .bot-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            background: #f7e8b0;
+            color: #8a6d3b;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px; /* 字母间距更舒适 */
+        }
+
+        /* 右侧箭头 - 优化颜色和大小 */
+        .right-arrow {
+            width: 14px;
+            height: 14px;
+            stroke: #888;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            margin-left: 6px;
+        }
+
+        /* 描述文字 - 优化字号和颜色 */
+        .subtitle {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+
+        /* 右侧更多按钮 - 匹配左侧点击体验 */
+        .more-btn {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px; /* 标准移动端点击区域 */
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .more-btn:hover {
+            background: #f0f0f0; /* 点击hover反馈 */
+        }
+
+        /* 更多按钮图标 - 优化样式 */
+        .more-icon {
+            width: 20px;
+            height: 20px;
+            stroke: #1a1a1a;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        /* 聊天内容区域示例 */
+        .chat-content {
+            padding: 16px;
+            background: #ffffff;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <!-- 聊天头部 -->
+    <div class="chat-header">
+        <!-- 左侧返回按钮（优化点击区域） -->
+        <div class="back-btn">
+            <svg class="back-arrow" viewBox="0 0 24 24">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" />
+            </svg>
+        </div>
+
+        <!-- 中间标题区域（居中） -->
+        <div class="title-wrapper">
+            <div class="title-row">
+                <div class="main-title">Attendance</div>
+                <div class="bot-tag">BOT</div>
+                <svg class="right-arrow" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </div>
+            <div class="subtitle">For efficient leave and attendance management</div>
+        </div>
+
+        <!-- 右侧更多按钮（优化点击区域） -->
+        <div class="more-btn">
+            <svg class="more-icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="6" r="2" />
+                <circle cx="12" cy="12" r="2" />
+                <circle cx="12" cy="18" r="2" />
+            </svg>
+        </div>
+    </div>
+
+</body>
+</html>

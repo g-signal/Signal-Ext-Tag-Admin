@@ -285,13 +285,20 @@
             <div class="scene-title">
               <span class="scene-dot dot-user"></span>用户管理列表
             </div>
-            <div class="scene-content">
-              <div class="mock-list-row">
-                <span class="mock-cell mono">U001</span>
-                <span class="mock-cell">138****8001</span>
-                <span class="mock-cell gray">VIP用户</span>
-                <div class="mock-cell">
-                  <TagDisplay :tag="currentTag" />
+            <div class="scene-content scene-content-chat">
+              <div class="mock-chat-item">
+                <div class="mock-chat-avatar">
+                  <svg viewBox="0 0 100 100" width="100%" height="100%">
+                    <path d="M50,10 C35,10 22,23 22,40 C22,55 35,68 50,68 C65,68 78,55 78,40 C78,23 65,10 50,10 Z M50,75 C25,75 10,90 10,100 L90,100 C90,90 75,75 50,75 Z"/>
+                  </svg>
+                </div>
+                <div class="mock-chat-content">
+                  <div class="mock-chat-header">
+                    <span class="mock-chat-username">用户昵称</span>
+                    <TagDisplay :tag="currentTag" />
+                    <span class="mock-chat-time">Nov 12</span>
+                  </div>
+                  <div class="mock-chat-message">最后一条消息内容预览…</div>
                 </div>
               </div>
             </div>
@@ -302,13 +309,21 @@
             <div class="scene-title">
               <span class="scene-dot dot-group"></span>群组管理列表
             </div>
-            <div class="scene-content">
-              <div class="mock-list-row">
-                <span class="mock-cell mono">G001</span>
-                <span class="mock-cell gray">核心用户群</span>
-                <div class="mock-cell">
-                  <TagDisplay :tag="currentTag" />
+            <div class="scene-content scene-content-notification">
+              <div class="mock-notification-item">
+                <div class="mock-notif-avatar">
+                  <svg class="mock-notif-icon" viewBox="0 0 24 24">
+                    <path d="M16,11c1.66,0 2.99,-1.34 2.99,-3s-1.33,-3 -2.99,-3c-1.66,0 -3,1.34 -3,3s1.34,3 3,3m-8,0c1.66,0 2.99,-1.34 2.99,-3s-1.33,-3 -2.99,-3c-1.66,0 -3,1.34 -3,3s1.34,3 3,3m0,2c-2.33,0 -7,1.17 -7,3.5v1.5h14v-1.5c0,-2.33 -4.67,-3.5 -7,-3.5m8,0c-2.33,0 -7,1.17 -7,3.5v1.5h14v-1.5c0,-2.33 -4.67,-3.5 -7,-3.5z"/>
+                  </svg>
                 </div>
+                <div class="mock-notif-content">
+                  <div class="mock-notif-top">
+                    <span class="mock-notif-name">核心用户群</span>
+                    <TagDisplay :tag="currentTag" />
+                  </div>
+                  <div class="mock-notif-message">共 128 名成员</div>
+                </div>
+                <div class="mock-notif-date">Feb 5</div>
               </div>
             </div>
           </div>
@@ -318,14 +333,29 @@
             <div class="scene-title">
               <span class="scene-dot dot-card"></span>用户卡片
             </div>
-            <div class="scene-content">
-              <div class="mock-card">
-                <div class="mock-avatar">U</div>
-                <div class="mock-card-body">
-                  <div class="mock-name">用户昵称</div>
-                  <div class="mock-tags">
+            <div class="scene-content scene-content-flush">
+              <div class="mock-chat-header-bar">
+                <div class="mock-hdr-back">
+                  <svg class="mock-hdr-back-arrow" viewBox="0 0 24 24">
+                    <path d="M19 12H5M5 12L12 19M5 12L12 5" />
+                  </svg>
+                </div>
+                <div class="mock-hdr-title-wrapper">
+                  <div class="mock-hdr-title-row">
+                    <span class="mock-hdr-name">用户昵称</span>
                     <TagDisplay :tag="currentTag" />
+                    <svg class="mock-hdr-right-arrow" viewBox="0 0 24 24">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
                   </div>
+                  <div class="mock-hdr-subtitle">Signal ID: 123456</div>
+                </div>
+                <div class="mock-hdr-more">
+                  <svg class="mock-hdr-more-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="6" r="1.8" />
+                    <circle cx="12" cy="12" r="1.8" />
+                    <circle cx="12" cy="18" r="1.8" />
+                  </svg>
                 </div>
               </div>
             </div>
@@ -846,7 +876,7 @@ function handleDelete(id) {
 
 /* ── Right preview ── */
 .panel-preview {
-  width: 280px;
+  width: 350px;
   flex-shrink: 0;
   background: #f8fafc;
   overflow: hidden;
@@ -902,64 +932,221 @@ function handleDelete(id) {
   padding: 10px 12px;
 }
 
-.mock-list-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #606266;
-  flex-wrap: wrap;
+.scene-content-chat {
+  padding: 0 12px;
 }
 
-.mock-cell {
-  white-space: nowrap;
-}
-
-.mock-cell.mono {
-  font-family: monospace;
-  color: #909399;
-}
-
-.mock-cell.gray {
-  color: #c0c4cc;
-}
-
-.mock-card {
+.mock-chat-item {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.mock-avatar {
-  width: 34px;
-  height: 34px;
+.mock-chat-avatar {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #409eff, #53a8ff);
+  background-color: #f7c340;
+  flex-shrink: 0;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+}
+
+.mock-chat-avatar svg {
+  width: 60%;
+  height: 60%;
+  fill: #000000;
+}
+
+.mock-chat-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mock-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mock-chat-username {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
+  color: #1d1d1f;
   flex-shrink: 0;
 }
 
-.mock-card-body {
+.mock-chat-time {
+  margin-left: auto;
+  font-size: 11px;
+  color: #888888;
+  flex-shrink: 0;
+}
+
+.mock-chat-message {
+  font-size: 11px;
+  color: #888888;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-content-notification {
+  padding: 8px 12px;
+}
+
+.mock-notification-item {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  gap: 10px;
+  border: 1px solid #f0f0f0;
+}
+
+.mock-notif-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid #e91e63;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mock-notif-icon {
+  width: 20px;
+  height: 20px;
+  fill: #e91e63;
+}
+
+.mock-notif-content {
   flex: 1;
   min-width: 0;
-}
-
-.mock-name {
-  font-size: 12px;
-  font-weight: 500;
-  color: #303133;
-  margin-bottom: 5px;
-}
-
-.mock-tags {
   display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mock-notif-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex-wrap: wrap;
-  gap: 4px;
+}
+
+.mock-notif-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333333;
+  flex-shrink: 0;
+}
+
+.mock-notif-message {
+  font-size: 11px;
+  color: #666666;
+}
+
+.mock-notif-date {
+  font-size: 11px;
+  color: #999999;
+  flex-shrink: 0;
+}
+
+.mock-chat-header-bar {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  padding: 0 16px;
+  height: 56px;
+  border-bottom: 1px solid #e8e8e8;
+  position: relative;
+}
+
+.mock-hdr-back {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mock-hdr-back-arrow {
+  width: 16px;
+  height: 16px;
+  stroke: #1a1a1a;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.mock-hdr-title-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.mock-hdr-title-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 2px;
+}
+
+.mock-hdr-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.mock-hdr-right-arrow {
+  width: 11px;
+  height: 11px;
+  stroke: #888;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.mock-hdr-subtitle {
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+
+.mock-hdr-more {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mock-hdr-more-icon {
+  width: 16px;
+  height: 16px;
+  fill: #1a1a1a;
+}
+
+.scene-content-flush {
+  padding: 0;
 }
 
 .mock-multi-tags {

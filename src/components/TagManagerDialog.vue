@@ -825,7 +825,7 @@ function removeTag(id) {
 
 /* ── Right preview ── */
 .panel-preview {
-  width: 270px;
+  width: 350px;
   flex-shrink: 0;
   background: #f8fafc;
   overflow: hidden;
