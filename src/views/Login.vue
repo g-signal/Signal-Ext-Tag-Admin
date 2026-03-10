@@ -3,7 +3,7 @@
     <div class="login-box">
       <div class="login-header">
         <div class="logo-icon">⚡</div>
-        <h1>BA Signal Admin</h1>
+        <h1>BA Admin</h1>
         <p>系统管理后台</p>
       </div>
       <el-form :model="form" :rules="rules" ref="formRef" size="large">

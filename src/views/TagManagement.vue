@@ -227,25 +227,23 @@
             <span class="field-unit">px</span>
           </div>
 
-          <template v-if="currentTag.border_width > 0">
-            <div class="field-row">
-              <span class="field-label">边框样式</span>
-              <el-select v-model="currentTag.border_style" size="small" style="width: 120px">
-                <el-option label="实线" value="solid" />
-                <el-option label="虚线" value="dashed" />
-                <el-option label="点线" value="dotted" />
-                <el-option label="双线" value="double" />
-                <el-option label="凹槽" value="groove" />
-              </el-select>
+          <div class="field-row">
+            <span class="field-label">边框样式</span>
+            <el-select v-model="currentTag.border_style" size="small" style="width: 120px">
+              <el-option label="实线" value="solid" />
+              <el-option label="虚线" value="dashed" />
+              <el-option label="点线" value="dotted" />
+              <el-option label="双线" value="double" />
+              <el-option label="凹槽" value="groove" />
+            </el-select>
+          </div>
+          <div class="field-row">
+            <span class="field-label">边框颜色</span>
+            <div class="color-row">
+              <el-color-picker v-model="currentTag.border_color" color-format="hex" size="small" />
+              <span class="swatch-label">{{ currentTag.border_color }}</span>
             </div>
-            <div class="field-row">
-              <span class="field-label">边框颜色</span>
-              <div class="color-row">
-                <el-color-picker v-model="currentTag.border_color" color-format="hex" size="small" />
-                <span class="swatch-label">{{ currentTag.border_color }}</span>
-              </div>
-            </div>
-          </template>
+          </div>
 
           <div class="field-row">
             <span class="field-label">优先级</span>

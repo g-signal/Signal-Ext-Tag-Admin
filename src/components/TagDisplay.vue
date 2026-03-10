@@ -35,12 +35,10 @@ const textStyle = computed(() => {
     color: props.tag.color || '#ffffff',
     backgroundColor: props.tag.background_color || '#409eff',
     borderRadius: (props.tag.border_radius ?? 4) + 'px',
-    opacity: props.tag.opacity ?? 1
-  }
-  if (borderWidth > 0) {
-    style.borderWidth = borderWidth + 'px'
-    style.borderStyle = props.tag.border_style || 'solid'
-    style.borderColor = props.tag.border_color || 'transparent'
+    opacity: props.tag.opacity ?? 1,
+    borderWidth: borderWidth + 'px',
+    borderStyle: props.tag.border_style || 'solid',
+    borderColor: props.tag.border_color || 'transparent'
   }
   return style
 })

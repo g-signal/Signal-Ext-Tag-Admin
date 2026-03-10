@@ -4,7 +4,7 @@
     <aside class="sidebar">
       <div class="logo">
         <span class="logo-icon">⚡</span>
-        <span class="logo-text">BA Signal Admin</span>
+        <span class="logo-text">BA Admin</span>
       </div>
       <el-menu
         router
@@ -33,7 +33,7 @@
     <div class="main-wrap">
       <header class="header">
         <div class="breadcrumb">
-          <span class="page-title">{{ route.meta.title || 'BA Signal Admin' }}</span>
+          <span class="page-title">{{ route.meta.title || 'BA Admin' }}</span>
         </div>
         <div class="header-right">
           <el-avatar :size="30" style="background: #409eff; font-size: 13px;">A</el-avatar>
