@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"D:/wqj/Work/B&A/BA-Signal-admin\" && npm install 2>&1 | tail -5)",
+      "Bash(cd \"D:/wqj/Work/B&A/BA-Signal-admin\" && npm run build 2>&1)",
+      "Bash(cd \"D:/wqj/Work/B&A/BA-Signal-admin\" && npx vite build 2>&1)",
+      "Bash(node \"D:/wqj/Work/B&A/BA-Signal-admin/node_modules/vite/bin/vite.js\" build --root \"D:/wqj/Work/B&A/BA-Signal-admin\" 2>&1)",
+      "Bash(node \"D:/wqj/Work/B&A/BA-Signal-admin/node_modules/vite/bin/vite.js\" build \"D:/wqj/Work/B&A/BA-Signal-admin\" 2>&1)",
+      "Bash(cd \"D:/wqj/Work/B&A/BA-Signal-admin\" && npm install axios 2>&1 | tail -4)",
+      "Bash(ls \"D:/wqj/Work/B&A/BA-Signal-admin/src/utils/\")",
+      "Bash(ls \"D:\\\\wqj\\\\Work\\\\B&A\\\\BA-Signal-admin\")",
+      "Bash(ls \"D:\\\\wqj\\\\Work\\\\B&A\\\\BA-Signal-admin\\\\node_modules\\\\.bin\" | head -20)",
+      "Bash(cat \"D:\\\\wqj\\\\Work\\\\B&A\\\\BA-Signal-admin\\\\node_modules\\\\.bin\\\\vite.cmd\")",
+      "Bash(ls \"D:\\\\wqj\\\\Work\\\\B&A\\\\BA-Signal-admin\\\\node_modules\\\\vite\" 2>/dev/null | head -10)",
+      "Bash(ls \"D:\\\\wqj\\\\Work\\\\B&A\\\\BA-Signal-admin\\\\node_modules\\\\.bin\" 2>/dev/null | grep vite)",
+      "Bash(ls \"D:\\\\wqj\\\\Work\\\\B&A\\\\BA-Signal-admin\\\\node_modules\\\\vite\" 2>/dev/null | head -5)",
+      "Bash(node --version && npm --version 2>/dev/null)",
+      "Bash(npm list:*)",
+      "Bash(ls \"D:\\\\wqj\\\\Work\\\\B&A\\\\BA-Signal-admin\\\\node_modules\\\\.bin\\\\\" | grep vite)",
+      "Bash(cmd /c \"dir \\\\\"D:\\\\wqj\\\\Work\\\\B&A\\\\BA-Signal-admin\\\\node_modules\\\\.bin\\\\\" /b 2>&1 | findstr /i vite\")",
+      "Bash(cmd /c \"where bash\")",
+      "Bash(which bash:*)"
+    ]
+  }
+}

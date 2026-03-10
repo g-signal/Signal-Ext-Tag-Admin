@@ -1,0 +1,925 @@
+<template>
+  <div class="page-wrap">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Tag 管理</h2>
+        <p class="page-desc">创建和管理全局标签，可在用户与群组中引用</p>
+      </div>
+    </div>
+
+    <div class="tag-manager">
+      <!-- ===== Left: Tag List ===== -->
+      <div class="panel panel-list">
+        <div class="panel-head">
+          <span>标签列表 <em class="tag-count">{{ tagsStore.tags.length }}</em></span>
+          <el-button size="small" type="primary" :icon="Plus" @click="startAddTag">
+            添加
+          </el-button>
+        </div>
+        <div class="tag-scroll">
+          <div
+            v-for="tag in displayTags"
+            :key="tag.id"
+            class="list-item"
+            :class="{ 'is-active': currentTag?.id === tag.id }"
+            @click="selectTag(tag)"
+          >
+            <div class="list-item-tag">
+              <TagDisplay :tag="tag" />
+            </div>
+            <div class="list-item-ops">
+              <el-tooltip content="编辑" placement="top">
+                <el-button link :icon="EditIcon" size="small" @click.stop="selectTag(tag)" />
+              </el-tooltip>
+              <el-tooltip content="删除" placement="top">
+                <el-button
+                  link
+                  type="danger"
+                  :icon="Delete"
+                  size="small"
+                  @click.stop="handleDelete(tag.id)"
+                />
+              </el-tooltip>
+            </div>
+          </div>
+          <div v-if="!tagsStore.tags.length && !isNewTag" class="list-empty">
+            <el-icon style="font-size: 28px; color: #dcdfe6;"><CollectionTag /></el-icon>
+            <p>暂无标签</p>
+            <p>点击「添加」创建标签</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Center: Editor ===== -->
+      <div class="panel panel-editor">
+        <div class="panel-head">
+          <span>{{ isNewTag ? '创建标签' : (currentTag ? '编辑标签' : '标签编辑器') }}</span>
+          <div v-if="currentTag" class="live-badge">
+            <span class="live-dot"></span>实时预览
+          </div>
+        </div>
+
+        <div v-if="currentTag" class="editor-body">
+          <!-- Current effect bar -->
+          <div class="effect-bar">
+            <span class="effect-label">当前效果</span>
+            <div class="effect-display">
+              <TagDisplay :tag="currentTag" />
+            </div>
+          </div>
+
+          <!-- Type -->
+          <div class="field-row">
+            <span class="field-label">类型</span>
+            <el-radio-group v-model="currentTag.type" @change="onTypeChange">
+              <el-radio value="text">
+                <el-icon style="vertical-align: middle; margin-right: 3px;"><Memo /></el-icon>
+                文本标签
+              </el-radio>
+              <el-radio value="image">
+                <el-icon style="vertical-align: middle; margin-right: 3px;"><Picture /></el-icon>
+                图片标签
+              </el-radio>
+            </el-radio-group>
+          </div>
+
+          <!-- ── Text fields ── -->
+          <template v-if="currentTag.type === 'text'">
+            <div class="field-row">
+              <span class="field-label">标签内容</span>
+              <el-input
+                v-model="currentTag.content"
+                placeholder="输入标签文本"
+                maxlength="20"
+                show-word-limit
+                style="flex: 1"
+              />
+            </div>
+
+            <div class="field-row align-start">
+              <span class="field-label" style="padding-top: 6px;">文字颜色</span>
+              <div class="color-group">
+                <div class="color-row">
+                  <el-color-picker v-model="currentTag.textColor" color-format="hex" size="small" />
+                  <div
+                    class="color-swatch"
+                    :style="{ background: hexToRgba(currentTag.textColor, currentTag.textOpacity) }"
+                  />
+                  <span class="swatch-label">{{ currentTag.textColor }}</span>
+                </div>
+                <div class="opacity-row">
+                  <span class="opacity-label">
+                    透明度 <b>{{ currentTag.textOpacity }}%</b>
+                  </span>
+                  <el-slider
+                    v-model="currentTag.textOpacity"
+                    :min="0"
+                    :max="100"
+                    :show-tooltip="false"
+                    size="small"
+                    class="opacity-slider"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-row align-start">
+              <span class="field-label" style="padding-top: 6px;">背景颜色</span>
+              <div class="color-group">
+                <div class="color-row">
+                  <el-color-picker v-model="currentTag.bgColor" color-format="hex" size="small" />
+                  <div
+                    class="color-swatch"
+                    :style="{ background: hexToRgba(currentTag.bgColor, currentTag.bgOpacity) }"
+                  />
+                  <span class="swatch-label">{{ currentTag.bgColor }}</span>
+                </div>
+                <div class="opacity-row">
+                  <span class="opacity-label">
+                    透明度 <b>{{ currentTag.bgOpacity }}%</b>
+                  </span>
+                  <el-slider
+                    v-model="currentTag.bgOpacity"
+                    :min="0"
+                    :max="100"
+                    :show-tooltip="false"
+                    size="small"
+                    class="opacity-slider"
+                  />
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- ── Image fields ── -->
+          <template v-if="currentTag.type === 'image'">
+            <div class="field-row align-start">
+              <span class="field-label" style="padding-top: 6px;">图片</span>
+              <div class="image-area">
+                <div v-if="currentTag.imageUrl" class="image-preview">
+                  <img :src="currentTag.imageUrl" class="preview-img" />
+                  <div class="image-ops">
+                    <el-button
+                      size="small"
+                      type="danger"
+                      plain
+                      :icon="Delete"
+                      @click="currentTag.imageUrl = ''"
+                    >
+                      移除
+                    </el-button>
+                    <el-upload
+                      action="#"
+                      :auto-upload="false"
+                      :show-file-list="false"
+                      :on-change="handleImageChange"
+                      accept="image/*"
+                    >
+                      <el-button size="small" :icon="Refresh">更换</el-button>
+                    </el-upload>
+                  </div>
+                </div>
+                <el-upload
+                  v-else
+                  action="#"
+                  :auto-upload="false"
+                  :show-file-list="false"
+                  :on-change="handleImageChange"
+                  accept="image/*"
+                  drag
+                  class="image-uploader"
+                >
+                  <div class="upload-inner">
+                    <el-icon style="font-size: 28px; color: #c0c4cc;"><Upload /></el-icon>
+                    <p>点击或拖拽图片到此处</p>
+                    <p class="upload-hint">支持 JPG / PNG / GIF / WebP</p>
+                  </div>
+                </el-upload>
+              </div>
+            </div>
+          </template>
+
+          <div class="editor-actions">
+            <el-button @click="cancelEdit" :icon="Close">取消</el-button>
+            <el-button type="primary" @click="saveTag" :icon="Check">
+              {{ isNewTag ? '添加标签' : '保存修改' }}
+            </el-button>
+          </div>
+        </div>
+
+        <div v-else class="editor-placeholder">
+          <el-icon style="font-size: 40px; color: #dcdfe6;"><EditPen /></el-icon>
+          <p>在左侧选择标签进行编辑</p>
+          <p>或点击「添加」创建新标签</p>
+        </div>
+      </div>
+
+      <!-- ===== Right: Multi-scene Preview ===== -->
+      <div class="panel panel-preview">
+        <div class="panel-head">
+          <span>预览效果</span>
+          <span v-if="currentTag" class="preview-sync">实时同步</span>
+        </div>
+
+        <div v-if="currentTag" class="preview-body">
+          <!-- Scene 1: Standalone -->
+          <div class="scene-block">
+            <div class="scene-title">
+              <span class="scene-dot"></span>标签样式
+            </div>
+            <div class="scene-content">
+              <TagDisplay :tag="currentTag" />
+            </div>
+          </div>
+
+          <!-- Scene 2: User list row -->
+          <div class="scene-block">
+            <div class="scene-title">
+              <span class="scene-dot dot-user"></span>用户管理列表
+            </div>
+            <div class="scene-content">
+              <div class="mock-list-row">
+                <span class="mock-cell mono">U001</span>
+                <span class="mock-cell">138****8001</span>
+                <span class="mock-cell gray">VIP用户</span>
+                <div class="mock-cell">
+                  <TagDisplay :tag="currentTag" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 3: Group list row -->
+          <div class="scene-block">
+            <div class="scene-title">
+              <span class="scene-dot dot-group"></span>群组管理列表
+            </div>
+            <div class="scene-content">
+              <div class="mock-list-row">
+                <span class="mock-cell mono">G001</span>
+                <span class="mock-cell gray">核心用户群</span>
+                <div class="mock-cell">
+                  <TagDisplay :tag="currentTag" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 4: User card -->
+          <div class="scene-block">
+            <div class="scene-title">
+              <span class="scene-dot dot-card"></span>用户卡片
+            </div>
+            <div class="scene-content">
+              <div class="mock-card">
+                <div class="mock-avatar">U</div>
+                <div class="mock-card-body">
+                  <div class="mock-name">用户昵称</div>
+                  <div class="mock-tags">
+                    <TagDisplay :tag="currentTag" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 5: Multi-tag (if other tags exist) -->
+          <div v-if="allPreviewTags.length > 1" class="scene-block">
+            <div class="scene-title">
+              <span class="scene-dot dot-multi"></span>多标签场景
+            </div>
+            <div class="scene-content">
+              <div class="mock-multi-tags">
+                <TagDisplay v-for="t in allPreviewTags" :key="t.id" :tag="t" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="preview-placeholder">
+          <el-icon style="font-size: 36px; color: #dcdfe6;"><View /></el-icon>
+          <p>编辑标签后查看预览</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  Plus, Delete, Edit as EditIcon, Close, Check, Refresh,
+  Upload, Picture, Memo, EditPen, CollectionTag, View
+} from '@element-plus/icons-vue'
+import TagDisplay from '@/components/TagDisplay.vue'
+import { useTagsStore } from '@/stores/tags'
+import { useUsersStore } from '@/stores/users'
+import { useGroupsStore } from '@/stores/groups'
+import { hexToRgba } from '@/utils/color'
+
+const tagsStore = useTagsStore()
+const usersStore = useUsersStore()
+const groupsStore = useGroupsStore()
+
+const currentTag = ref(null)
+const isNewTag = ref(false)
+
+// displayTags: reflects currentTag edits in real time in the list
+const displayTags = computed(() => {
+  if (!currentTag.value || isNewTag.value) return tagsStore.tags
+  return tagsStore.tags.map(t =>
+    t.id === currentTag.value.id ? { ...currentTag.value } : t
+  )
+})
+
+// Combined preview: other saved tags + current editing tag
+const allPreviewTags = computed(() => {
+  if (!currentTag.value) return tagsStore.tags
+  const others = tagsStore.tags.filter(t => t.id !== currentTag.value.id)
+  return [...others, currentTag.value]
+})
+
+function makeDefaultTag() {
+  return {
+    id: '__new__',
+    type: 'text',
+    content: '新标签',
+    textColor: '#ffffff',
+    textOpacity: 100,
+    bgColor: '#409eff',
+    bgOpacity: 100,
+    imageUrl: '',
+    altText: ''
+  }
+}
+
+function startAddTag() {
+  isNewTag.value = true
+  currentTag.value = makeDefaultTag()
+}
+
+function selectTag(tag) {
+  isNewTag.value = false
+  currentTag.value = { ...tag }
+}
+
+function onTypeChange() {
+  if (!currentTag.value) return
+  if (currentTag.value.type === 'text') {
+    currentTag.value.content = currentTag.value.content || '新标签'
+  }
+}
+
+function handleImageChange(file) {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    if (currentTag.value) currentTag.value.imageUrl = e.target.result
+  }
+  reader.readAsDataURL(file.raw)
+}
+
+function saveTag() {
+  if (!currentTag.value) return
+
+  if (currentTag.value.type === 'text' && !currentTag.value.content.trim()) {
+    ElMessage.warning('请输入标签内容')
+    return
+  }
+  if (currentTag.value.type === 'image' && !currentTag.value.imageUrl) {
+    ElMessage.warning('请上传图片')
+    return
+  }
+
+  if (isNewTag.value) {
+    const saved = tagsStore.addTag({ ...currentTag.value })
+    currentTag.value = { ...saved }
+    isNewTag.value = false
+    ElMessage.success('标签已创建')
+  } else {
+    tagsStore.updateTag(currentTag.value.id, { ...currentTag.value })
+    currentTag.value = { ...currentTag.value }
+    ElMessage.success('标签已保存')
+  }
+}
+
+function cancelEdit() {
+  if (isNewTag.value) {
+    currentTag.value = null
+    isNewTag.value = false
+  } else {
+    const original = tagsStore.getTagById(currentTag.value?.id)
+    currentTag.value = original ? { ...original } : null
+  }
+}
+
+function handleDelete(id) {
+  // Count usages
+  const userCount = usersStore.users.filter(u => u.tagIds.includes(id)).length
+  const groupCount = groupsStore.groups.filter(g => g.tagIds.includes(id)).length
+  const usageText = (userCount + groupCount > 0)
+    ? `\n\n该标签已被 ${userCount} 个用户、${groupCount} 个群组引用，删除后将自动移除引用。`
+    : ''
+
+  ElMessageBox.confirm(
+    `确认删除该标签？此操作不可撤销。${usageText}`,
+    '删除确认',
+    {
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消',
+      confirmButtonClass: 'el-button--danger',
+      type: 'warning'
+    }
+  ).then(() => {
+    usersStore.removeTagRef(id)
+    groupsStore.removeTagRef(id)
+    tagsStore.deleteTag(id)
+    if (currentTag.value?.id === id) {
+      currentTag.value = null
+      isNewTag.value = false
+    }
+    ElMessage.success('标签已删除')
+  }).catch(() => {})
+}
+</script>
+
+<style scoped>
+.page-wrap {
+  background: white;
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  height: calc(100vh - 112px);
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1d2939;
+  margin-bottom: 3px;
+}
+
+.page-desc {
+  font-size: 12px;
+  color: #909399;
+}
+
+/* ── 3-panel layout ── */
+.tag-manager {
+  display: flex;
+  flex: 1;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e4e7ed;
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+  flex-shrink: 0;
+}
+
+/* ── Left list ── */
+.panel-list {
+  width: 220px;
+  border-right: 1px solid #e4e7ed;
+  flex-shrink: 0;
+}
+
+.tag-count {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 11px;
+  color: #909399;
+  margin-left: 4px;
+  background: #f0f2f5;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.tag-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  gap: 6px;
+  border: 1px solid transparent;
+}
+
+.list-item:hover {
+  background: #f0f7ff;
+}
+
+.list-item.is-active {
+  background: #ecf5ff;
+  border-color: #b3d8ff;
+}
+
+.list-item-tag {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.list-item-ops {
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.list-item:hover .list-item-ops,
+.list-item.is-active .list-item-ops {
+  opacity: 1;
+}
+
+.list-empty {
+  padding-top: 50px;
+  text-align: center;
+  color: #c0c4cc;
+  font-size: 12px;
+  line-height: 2;
+}
+
+/* ── Center editor ── */
+.panel-editor {
+  flex: 1;
+  border-right: 1px solid #e4e7ed;
+  overflow: hidden;
+}
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #67c23a;
+  font-weight: 400;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #67c23a;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.editor-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+}
+
+.effect-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #f0f7ff, #f8fafc);
+  border: 1px solid #d9ecff;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.effect-label {
+  font-size: 11px;
+  color: #909399;
+  white-space: nowrap;
+}
+
+.effect-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  flex: 1;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.field-row.align-start {
+  align-items: flex-start;
+}
+
+.field-label {
+  width: 68px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #606266;
+  white-space: nowrap;
+}
+
+.color-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-swatch {
+  width: 32px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  background-image: linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 6px 6px;
+  background-position: 0 0, 0 3px, 3px -3px, -3px 0;
+  position: relative;
+}
+
+.color-swatch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: inherit;
+}
+
+.swatch-label {
+  font-size: 11px;
+  color: #909399;
+  font-family: monospace;
+}
+
+.opacity-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.opacity-label {
+  font-size: 12px;
+  color: #606266;
+  white-space: nowrap;
+  min-width: 88px;
+}
+
+.opacity-label b {
+  color: #409eff;
+  font-weight: 600;
+}
+
+.opacity-slider {
+  flex: 1;
+}
+
+.image-area {
+  flex: 1;
+}
+
+.image-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.preview-img {
+  max-width: 140px;
+  max-height: 100px;
+  border-radius: 6px;
+  border: 1px solid #e4e7ed;
+  object-fit: contain;
+}
+
+.image-ops {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.image-uploader {
+  width: 100%;
+}
+
+.upload-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  color: #909399;
+}
+
+.upload-inner p {
+  font-size: 13px;
+  margin: 0;
+}
+
+.upload-hint {
+  font-size: 11px !important;
+  color: #c0c4cc !important;
+}
+
+.editor-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.editor-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #c0c4cc;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.8;
+}
+
+/* ── Right preview ── */
+.panel-preview {
+  width: 280px;
+  flex-shrink: 0;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.preview-sync {
+  font-size: 11px;
+  color: #67c23a;
+  font-weight: 400;
+}
+
+.preview-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scene-block {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #ebeef5;
+  overflow: hidden;
+}
+
+.scene-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #909399;
+  padding: 6px 10px;
+  background: #f5f7fa;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.scene-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #409eff;
+  flex-shrink: 0;
+}
+
+.scene-dot.dot-user { background: #67c23a; }
+.scene-dot.dot-group { background: #e6a23c; }
+.scene-dot.dot-card { background: #f56c6c; }
+.scene-dot.dot-multi { background: #909399; }
+
+.scene-content {
+  padding: 10px 12px;
+}
+
+.mock-list-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #606266;
+  flex-wrap: wrap;
+}
+
+.mock-cell {
+  white-space: nowrap;
+}
+
+.mock-cell.mono {
+  font-family: monospace;
+  color: #909399;
+}
+
+.mock-cell.gray {
+  color: #c0c4cc;
+}
+
+.mock-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mock-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #409eff, #53a8ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.mock-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.mock-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 5px;
+}
+
+.mock-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.mock-multi-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+
+.preview-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #c0c4cc;
+  font-size: 13px;
+}
+</style>
