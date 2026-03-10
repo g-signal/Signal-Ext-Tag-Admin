@@ -74,6 +74,18 @@
             </div>
           </div>
 
+          <!-- Name -->
+          <div class="field-row">
+            <span class="field-label">标签名称</span>
+            <el-input
+              v-model="currentTag.name"
+              placeholder="输入标签名称"
+              maxlength="45"
+              show-word-limit
+              style="flex: 1"
+            />
+          </div>
+
           <!-- Type selector -->
           <div class="field-row">
             <span class="field-label">类型</span>
@@ -94,9 +106,9 @@
             <div class="field-row">
               <span class="field-label">标签内容</span>
               <el-input
-                v-model="currentTag.content"
+                v-model="currentTag.text"
                 placeholder="输入标签文本"
-                maxlength="20"
+                maxlength="45"
                 show-word-limit
                 style="flex: 1"
               />
@@ -107,30 +119,12 @@
               <div class="color-group">
                 <div class="color-row">
                   <el-color-picker
-                    v-model="currentTag.textColor"
+                    v-model="currentTag.color"
                     color-format="hex"
                     size="small"
                   />
-                  <div
-                    class="color-swatch"
-                    :style="{ background: hexToRgba(currentTag.textColor, currentTag.textOpacity) }"
-                    :title="`${currentTag.textColor} @ ${currentTag.textOpacity}%`"
-                  />
-                  <span class="swatch-label">{{ currentTag.textColor }}</span>
-                </div>
-                <div class="opacity-row">
-                  <span class="opacity-label">
-                    透明度
-                    <b>{{ currentTag.textOpacity }}%</b>
-                  </span>
-                  <el-slider
-                    v-model="currentTag.textOpacity"
-                    :min="0"
-                    :max="100"
-                    :show-tooltip="false"
-                    size="small"
-                    class="opacity-slider"
-                  />
+                  <div class="color-swatch" :style="{ background: currentTag.color }" />
+                  <span class="swatch-label">{{ currentTag.color }}</span>
                 </div>
               </div>
             </div>
@@ -140,30 +134,15 @@
               <div class="color-group">
                 <div class="color-row">
                   <el-color-picker
-                    v-model="currentTag.bgColor"
+                    v-model="currentTag.background_color"
                     color-format="hex"
                     size="small"
                   />
                   <div
                     class="color-swatch"
-                    :style="{ background: hexToRgba(currentTag.bgColor, currentTag.bgOpacity) }"
-                    :title="`${currentTag.bgColor} @ ${currentTag.bgOpacity}%`"
+                    :style="{ background: hexToRgba(currentTag.background_color, currentTag.opacity * 100) }"
                   />
-                  <span class="swatch-label">{{ currentTag.bgColor }}</span>
-                </div>
-                <div class="opacity-row">
-                  <span class="opacity-label">
-                    透明度
-                    <b>{{ currentTag.bgOpacity }}%</b>
-                  </span>
-                  <el-slider
-                    v-model="currentTag.bgOpacity"
-                    :min="0"
-                    :max="100"
-                    :show-tooltip="false"
-                    size="small"
-                    class="opacity-slider"
-                  />
+                  <span class="swatch-label">{{ currentTag.background_color }}</span>
                 </div>
               </div>
             </div>
@@ -174,15 +153,15 @@
             <div class="field-row align-start">
               <span class="field-label" style="padding-top: 6px;">图片</span>
               <div class="image-area">
-                <div v-if="currentTag.imageUrl" class="image-preview">
-                  <img :src="currentTag.imageUrl" class="preview-img" />
+                <div v-if="currentTag.img_base64" class="image-preview">
+                  <img :src="currentTag.img_base64" class="preview-img" />
                   <div class="image-ops">
                     <el-button
                       size="small"
                       type="danger"
                       plain
                       :icon="Delete"
-                      @click="currentTag.imageUrl = ''"
+                      @click="currentTag.img_base64 = ''"
                     >
                       移除
                     </el-button>
@@ -213,6 +192,71 @@
                     <p class="upload-hint">支持 JPG / PNG / GIF / WebP</p>
                   </div>
                 </el-upload>
+              </div>
+            </div>
+          </template>
+
+          <!-- ── 透明度 & 边框 ── -->
+          <div class="field-row">
+            <span class="field-label">透明度</span>
+            <div class="color-group">
+              <div class="opacity-row">
+                <span class="opacity-label"><b>{{ Math.round(currentTag.opacity * 100) }}%</b></span>
+                <el-slider
+                  v-model="currentTag.opacity"
+                  :min="0"
+                  :max="1"
+                  :step="0.01"
+                  :show-tooltip="false"
+                  size="small"
+                  class="opacity-slider"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <span class="field-label">边框宽度</span>
+            <el-input-number
+              v-model="currentTag.border_width"
+              :min="0"
+              :max="20"
+              controls-position="right"
+              size="small"
+              style="width: 120px"
+            />
+            <span class="field-unit">px</span>
+          </div>
+
+          <div class="field-row">
+            <span class="field-label">圆角</span>
+            <el-input-number
+              v-model="currentTag.border_radius"
+              :min="0"
+              :max="50"
+              controls-position="right"
+              size="small"
+              style="width: 120px"
+            />
+            <span class="field-unit">px</span>
+          </div>
+
+          <template v-if="currentTag.border_width > 0">
+            <div class="field-row">
+              <span class="field-label">边框样式</span>
+              <el-select v-model="currentTag.border_style" size="small" style="width: 120px">
+                <el-option label="实线" value="solid" />
+                <el-option label="虚线" value="dashed" />
+                <el-option label="点线" value="dotted" />
+                <el-option label="双线" value="double" />
+                <el-option label="凹槽" value="groove" />
+              </el-select>
+            </div>
+            <div class="field-row">
+              <span class="field-label">边框颜色</span>
+              <div class="color-row">
+                <el-color-picker v-model="currentTag.border_color" color-format="hex" size="small" />
+                <span class="swatch-label">{{ currentTag.border_color }}</span>
               </div>
             </div>
           </template>
@@ -377,13 +421,17 @@ function genId() {
 function makeDefaultTag() {
   return {
     id: genId(),
+    name: '新标签',
     type: 'text',
-    content: '新标签',
-    textColor: '#ffffff',
-    textOpacity: 100,
-    bgColor: '#409eff',
-    bgOpacity: 100,
-    imageUrl: ''
+    text: '新标签',
+    color: '#ffffff',
+    background_color: '#409eff',
+    opacity: 1,
+    img_base64: '',
+    border_width: 0,
+    border_radius: 4,
+    border_color: '#409eff',
+    border_style: 'solid'
   }
 }
 
@@ -400,16 +448,15 @@ function selectTag(tag) {
 
 function onTypeChange() {
   if (!currentTag.value) return
-  // Reset to sensible defaults on type change
   if (currentTag.value.type === 'text') {
-    currentTag.value.content = currentTag.value.content || '新标签'
+    currentTag.value.text = currentTag.value.text || '新标签'
   }
 }
 
 function handleImageChange(file) {
   const reader = new FileReader()
   reader.onload = (e) => {
-    if (currentTag.value) currentTag.value.imageUrl = e.target.result
+    if (currentTag.value) currentTag.value.img_base64 = e.target.result
   }
   reader.readAsDataURL(file.raw)
 }
@@ -417,11 +464,11 @@ function handleImageChange(file) {
 function saveTag() {
   if (!currentTag.value) return
 
-  if (currentTag.value.type === 'text' && !currentTag.value.content.trim()) {
+  if (currentTag.value.type === 'text' && !currentTag.value.text.trim()) {
     ElMessage.warning('请输入标签内容')
     return
   }
-  if (currentTag.value.type === 'image' && !currentTag.value.imageUrl) {
+  if (currentTag.value.type === 'image' && !currentTag.value.img_base64) {
     ElMessage.warning('请上传图片')
     return
   }
@@ -687,12 +734,18 @@ function removeTag(id) {
   font-size: 12px;
   color: #606266;
   white-space: nowrap;
-  min-width: 82px;
+  min-width: 48px;
 }
 
 .opacity-label b {
   color: #409eff;
   font-weight: 600;
+}
+
+.field-unit {
+  font-size: 12px;
+  color: #909399;
+  flex-shrink: 0;
 }
 
 .opacity-slider {

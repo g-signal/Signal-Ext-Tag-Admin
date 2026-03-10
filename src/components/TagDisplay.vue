@@ -1,13 +1,14 @@
 <template>
   <template v-if="tag.type === 'text'">
-    <span class="tag-text" :style="textStyle">{{ tag.content }}</span>
+    <span class="tag-text" :style="textStyle">{{ tag.text }}</span>
   </template>
   <template v-else-if="tag.type === 'image'">
     <img
-      v-if="tag.imageUrl"
-      :src="tag.imageUrl"
+      v-if="tag.img_base64"
+      :src="tag.img_base64"
       class="tag-image"
-      :alt="tag.altText || '标签图片'"
+      :alt="tag.name || '标签图片'"
+      :style="imageStyle"
     />
     <span v-else class="tag-placeholder">
       <el-icon style="font-size: 11px;"><Picture /></el-icon>
@@ -19,7 +20,6 @@
 <script setup>
 import { computed } from 'vue'
 import { Picture } from '@element-plus/icons-vue'
-import { hexToRgba } from '@/utils/color'
 
 const props = defineProps({
   tag: {
@@ -30,18 +30,31 @@ const props = defineProps({
 
 const textStyle = computed(() => {
   if (props.tag.type !== 'text') return {}
-  return {
-    color: hexToRgba(props.tag.textColor, props.tag.textOpacity ?? 100),
-    backgroundColor: hexToRgba(props.tag.bgColor, props.tag.bgOpacity ?? 100)
+  const borderWidth = props.tag.border_width || 0
+  const style = {
+    color: props.tag.color || '#ffffff',
+    backgroundColor: props.tag.background_color || '#409eff',
+    borderRadius: (props.tag.border_radius ?? 4) + 'px',
+    opacity: props.tag.opacity ?? 1
   }
+  if (borderWidth > 0) {
+    style.borderWidth = borderWidth + 'px'
+    style.borderStyle = props.tag.border_style || 'solid'
+    style.borderColor = props.tag.border_color || 'transparent'
+  }
+  return style
 })
+
+const imageStyle = computed(() => ({
+  borderRadius: (props.tag.border_radius ?? 3) + 'px',
+  opacity: props.tag.opacity ?? 1
+}))
 </script>
 
 <style scoped>
 .tag-text {
   display: inline-block;
   padding: 2px 10px;
-  border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
@@ -53,7 +66,6 @@ const textStyle = computed(() => {
   max-height: 24px;
   max-width: 90px;
   vertical-align: middle;
-  border-radius: 3px;
   object-fit: contain;
 }
 

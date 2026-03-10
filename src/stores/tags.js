@@ -9,50 +9,62 @@ export const useTagsStore = defineStore('tags', () => {
   const tags = ref([
     {
       id: 'tag_u1',
+      name: 'VIP',
       type: 'text',
-      content: 'VIP',
-      textColor: '#ffffff',
-      textOpacity: 100,
-      bgColor: '#e6a23c',
-      bgOpacity: 100,
-      imageUrl: '',
-      altText: ''
+      text: 'VIP',
+      color: '#ffffff',
+      background_color: '#e6a23c',
+      opacity: 1,
+      img_base64: '',
+      border_width: 0,
+      border_radius: 4,
+      border_color: '#e6a23c',
+      border_style: 'solid'
     },
     {
       id: 'tag_g1',
+      name: '核心',
       type: 'text',
-      content: '核心',
-      textColor: '#ffffff',
-      textOpacity: 100,
-      bgColor: '#409eff',
-      bgOpacity: 100,
-      imageUrl: '',
-      altText: ''
+      text: '核心',
+      color: '#ffffff',
+      background_color: '#409eff',
+      opacity: 1,
+      img_base64: '',
+      border_width: 0,
+      border_radius: 4,
+      border_color: '#409eff',
+      border_style: 'solid'
     },
     {
       id: 'tag_new',
+      name: '新人',
       type: 'text',
-      content: '新人',
-      textColor: '#ffffff',
-      textOpacity: 100,
-      bgColor: '#67c23a',
-      bgOpacity: 100,
-      imageUrl: '',
-      altText: ''
+      text: '新人',
+      color: '#ffffff',
+      background_color: '#67c23a',
+      opacity: 1,
+      img_base64: '',
+      border_width: 0,
+      border_radius: 4,
+      border_color: '#67c23a',
+      border_style: 'solid'
     }
   ])
 
   function addTag(tagData) {
     const tag = {
       id: genId(),
+      name: '',
       type: 'text',
-      content: '',
-      textColor: '#ffffff',
-      textOpacity: 100,
-      bgColor: '#409eff',
-      bgOpacity: 100,
-      imageUrl: '',
-      altText: '',
+      text: '',
+      color: '#ffffff',
+      background_color: '#409eff',
+      opacity: 1,
+      img_base64: '',
+      border_width: 0,
+      border_radius: 4,
+      border_color: '#409eff',
+      border_style: 'solid',
       ...tagData
     }
     tags.value.push(tag)
