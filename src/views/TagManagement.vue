@@ -139,6 +139,9 @@
             <div class="field-row align-start">
               <span class="field-label" style="padding-top: 6px;">图片</span>
               <div class="image-area">
+                <div class="image-spec-hint">
+                  建议尺寸 <b>60 × 60 px</b>，仅支持 <b>1:1</b> 比例
+                </div>
                 <div v-if="currentTag.img_base64" class="image-preview">
                   <img :src="currentTag.img_base64" class="preview-img" />
                   <div class="image-ops">
@@ -182,7 +185,8 @@
             </div>
           </template>
 
-          <!-- ── 透明度 & 边框 ── -->
+          <!-- ── 透明度 & 边框 & 优先级（仅文本标签）── -->
+          <template v-if="currentTag.type === 'text'">
           <div class="field-row">
             <span class="field-label">透明度</span>
             <div class="color-group">
@@ -244,6 +248,7 @@
               <span class="swatch-label">{{ currentTag.border_color }}</span>
             </div>
           </div>
+          </template>
 
           <div class="field-row">
             <span class="field-label">优先级</span>
@@ -259,7 +264,7 @@
 
           <div class="editor-actions">
             <el-button @click="cancelEdit" :icon="Close">取消</el-button>
-            <el-button type="primary" @click="saveTag" :icon="Check">
+            <el-button type="primary" @click="saveTag" :icon="Check" :loading="submitting">
               {{ isNewTag ? '添加标签' : '保存修改' }}
             </el-button>
           </div>
@@ -316,7 +321,7 @@
 
           <!-- Scene 3: Group list row -->
           <div class="scene-block">
-            <div class="scene-content scene-content-notification">
+            <div class="scene-content " style="padding: 0;">
               <div class="mock-notification-item">
                 <div class="mock-notif-avatar">
                   <svg class="mock-notif-icon" viewBox="0 0 24 24">
@@ -351,7 +356,7 @@
                     <TagDisplay :tag="currentTag" />
                     <el-icon><CaretRight /></el-icon>
                   </div>
-                  <div class="mock-hdr-subtitle">BA ID: 123456</div>
+                  <div class="mock-hdr-subtitle">For efficient leave and attendance management</div>
                 </div>
                 <div class="mock-hdr-more">
                   <el-icon><MoreFilled /></el-icon>
@@ -431,6 +436,7 @@ function storeToApi(t) {
 
 const tags = ref([])
 const loading = ref(false)
+const submitting = ref(false)
 
 async function fetchTags() {
   loading.value = true
@@ -500,7 +506,15 @@ function onTypeChange() {
 function handleImageChange(file) {
   const reader = new FileReader()
   reader.onload = (e) => {
-    if (currentTag.value) currentTag.value.img_base64 = e.target.result
+    const img = new Image()
+    img.onload = () => {
+      if (img.width !== img.height) {
+        ElMessage.error(`图片比例必须为 1:1，当前为 ${img.width}×${img.height}`)
+        return
+      }
+      if (currentTag.value) currentTag.value.img_base64 = e.target.result
+    }
+    img.src = e.target.result
   }
   reader.readAsDataURL(file.raw)
 }
@@ -516,6 +530,7 @@ async function saveTag() {
     return
   }
 
+  submitting.value = true
   try {
     if (isNewTag.value) {
       const apiTag = await createTag(storeToApi(currentTag.value))
@@ -531,7 +546,9 @@ async function saveTag() {
       currentTag.value = { ...(tags.value.find(t => t.id === savedId) || currentTag.value) }
       ElMessage.success('标签已保存')
     }
-  } catch {}
+  } catch {} finally {
+    submitting.value = false
+  }
 }
 
 function cancelEdit() {
@@ -568,7 +585,7 @@ function handleDelete(id) {
 }
 </script>
 
-<style scoped>
+<style scoped >
 .page-wrap {
   background: white;
   border-radius: 10px;
@@ -853,6 +870,16 @@ function handleDelete(id) {
   flex: 1;
 }
 
+.image-spec-hint {
+  font-size: 11px;
+  color: #909399;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  /* background: #f5f7fa; */
+  /* border-radius: 4px; */
+  /* border-left: 3px solid #409eff; */
+}
+
 .image-preview {
   display: flex;
   align-items: flex-start;
@@ -920,7 +947,7 @@ function handleDelete(id) {
 
 /* ── Right preview ── */
 .panel-preview {
-  width: 350px;
+  width: 370px;
   flex-shrink: 0;
   background: #f8fafc;
   overflow: hidden;
@@ -1048,7 +1075,7 @@ function handleDelete(id) {
 
 .mock-notification-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   background-color: #ffffff;
   padding: 10px 12px;
   border-radius: 8px;
@@ -1168,7 +1195,7 @@ function handleDelete(id) {
 }
 
 .mock-hdr-subtitle {
-  font-size: 11px;
+  font-size: 9px;
   color: #999;
   text-align: center;
   letter-spacing: 0.2px;

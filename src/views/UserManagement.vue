@@ -105,7 +105,7 @@
       </el-form>
       <template #footer>
         <el-button @click="addDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmAdd">确认添加</el-button>
+        <el-button type="primary" @click="confirmAdd" :loading="submitting">确认添加</el-button>
       </template>
     </el-dialog>
 
@@ -145,7 +145,7 @@
       </el-form>
       <template #footer>
         <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmEdit">保存修改</el-button>
+        <el-button type="primary" @click="confirmEdit" :loading="submitting">保存修改</el-button>
       </template>
     </el-dialog>
   </div>
@@ -190,6 +190,7 @@ function apiUserToLocal(u) {
 
 const users = ref([])
 const loading = ref(false)
+const submitting = ref(false)
 const tagOptions = ref([])
 const currentPage = ref(1)
 const pageSize = ref(20)
@@ -236,6 +237,7 @@ function openAddDialog() {
 function confirmAdd() {
   addFormRef.value.validate(async (valid) => {
     if (!valid) return
+    submitting.value = true
     try {
       await createUser({
         id: addForm.id,
@@ -246,7 +248,9 @@ function confirmAdd() {
       ElMessage.success('添加成功')
       addDialogVisible.value = false
       await fetchUsers()
-    } catch {}
+    } catch {} finally {
+      submitting.value = false
+    }
   })
 }
 
@@ -283,6 +287,7 @@ function openEditDialog(row) {
 function confirmEdit() {
   editFormRef.value.validate(async (valid) => {
     if (!valid) return
+    submitting.value = true
     try {
       await updateUser(editForm.id, {
         phoneNumber: editForm.phone,
@@ -292,7 +297,9 @@ function confirmEdit() {
       ElMessage.success('修改已保存')
       editDialogVisible.value = false
       await fetchUsers()
-    } catch {}
+    } catch {} finally {
+      submitting.value = false
+    }
   })
 }
 </script>
