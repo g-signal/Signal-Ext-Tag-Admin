@@ -43,15 +43,7 @@
             编辑
           </el-button>
           <el-divider direction="vertical" />
-          <el-popconfirm
-            title="确认删除该用户？此操作不可撤销。"
-            confirm-button-type="danger"
-            @confirm="deleteUser(row.id)"
-          >
-            <template #reference>
-              <el-button link type="danger" size="small" :icon="Delete">删除</el-button>
-            </template>
-          </el-popconfirm>
+          <el-button link type="danger" size="small" :icon="Delete" @click="deleteUser(row.id)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -153,7 +145,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Edit as EditIcon, Refresh } from '@element-plus/icons-vue'
 import { getUserList, createUser, updateUser, deleteUser as apiDeleteUser } from '@/api/user'
 import { getTagList } from '@/api/tag'
@@ -255,6 +247,16 @@ function confirmAdd() {
 }
 
 async function deleteUser(id) {
+  try {
+    await ElMessageBox.confirm('确认删除该用户？此操作不可撤销。', '删除确认', {
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+      confirmButtonClass: 'el-button--danger'
+    })
+  } catch {
+    return
+  }
   try {
     await apiDeleteUser(id)
     ElMessage.success('已删除')
