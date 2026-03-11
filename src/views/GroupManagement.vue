@@ -5,7 +5,10 @@
         <h2 class="page-title">群组管理</h2>
         <p class="page-desc">管理系统群组及其标签信息</p>
       </div>
-      <el-button type="primary" :icon="Plus" @click="openAddDialog">添加群组</el-button>
+      <div style="display:flex;gap:8px;">
+        <el-button :icon="Refresh" @click="fetchGroups" :loading="loading">刷新</el-button>
+        <el-button type="primary" :icon="Plus" @click="openAddDialog">添加群组</el-button>
+      </div>
     </div>
 
     <el-table :data="groups" v-loading="loading" border stripe class="data-table">
@@ -51,6 +54,19 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <div class="pagination-wrap">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50]"
+        :total="total"
+        layout="total, sizes, prev, pager, next"
+        background
+        @current-change="fetchGroups"
+        @size-change="fetchGroups"
+      />
+    </div>
 
     <!-- ── Add Group Dialog ── -->
     <el-dialog
@@ -130,7 +146,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Plus, Delete, Edit as EditIcon } from '@element-plus/icons-vue'
+import { Plus, Delete, Edit as EditIcon, Refresh } from '@element-plus/icons-vue'
 import { getGroupList, createGroup, updateGroup, deleteGroup as apiDeleteGroup } from '@/api/group'
 import { getTagList } from '@/api/tag'
 import TagDisplay from '@/components/TagDisplay.vue'
@@ -166,12 +182,16 @@ function apiGroupToLocal(g) {
 const groups = ref([])
 const loading = ref(false)
 const tagOptions = ref([])
+const currentPage = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
 
 async function fetchGroups() {
   loading.value = true
   try {
-    const data = await getGroupList()
-    groups.value = (data || []).map(apiGroupToLocal)
+    const data = await getGroupList(currentPage.value, pageSize.value)
+    groups.value = (data.list || []).map(apiGroupToLocal)
+    total.value = Number(data.total) || 0
   } finally {
     loading.value = false
   }
@@ -223,8 +243,8 @@ function confirmAdd() {
 async function deleteGroup(id) {
   try {
     await apiDeleteGroup(id)
-    groups.value = groups.value.filter(g => g.id !== id)
     ElMessage.success('已删除')
+    await fetchGroups()
   } catch {}
 }
 
@@ -312,5 +332,11 @@ function confirmEdit() {
 .empty-tag-hint {
   font-size: 12px;
   color: #dcdfe6;
+}
+
+.pagination-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

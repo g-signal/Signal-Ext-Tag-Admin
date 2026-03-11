@@ -341,31 +341,23 @@
           <!-- Scene 4: User card -->
           <div class="scene-block">
             <div class="scene-title">
-              <span class="scene-dot dot-card"></span>用户卡片
+              <span class="scene-dot dot-card"></span>聊天页面
             </div>
             <div class="scene-content scene-content-flush">
               <div class="mock-chat-header-bar">
                 <div class="mock-hdr-back">
-                  <svg class="mock-hdr-back-arrow" viewBox="0 0 24 24">
-                    <path d="M19 12H5M5 12L12 19M5 12L12 5" />
-                  </svg>
+                  <el-icon><ArrowLeftBold /></el-icon>
                 </div>
                 <div class="mock-hdr-title-wrapper">
                   <div class="mock-hdr-title-row">
-                    <span class="mock-hdr-name">用户昵称</span>
+                    <span class="mock-hdr-name">Attendance</span>
                     <TagDisplay :tag="currentTag" />
-                    <svg class="mock-hdr-right-arrow" viewBox="0 0 24 24">
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
+                    <el-icon><CaretRight /></el-icon>
                   </div>
-                  <div class="mock-hdr-subtitle">Signal ID: 123456</div>
+                  <div class="mock-hdr-subtitle">BA ID: 123456</div>
                 </div>
                 <div class="mock-hdr-more">
-                  <svg class="mock-hdr-more-icon" viewBox="0 0 24 24">
-                    <circle cx="12" cy="6" r="1.8" />
-                    <circle cx="12" cy="12" r="1.8" />
-                    <circle cx="12" cy="18" r="1.8" />
-                  </svg>
+                  <el-icon><MoreFilled /></el-icon>
                 </div>
               </div>
             </div>
@@ -398,7 +390,8 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Plus, Delete, Edit as EditIcon, Close, Check, Refresh,
-  Upload, Picture, Memo, EditPen, CollectionTag, View
+  Upload, Picture, Memo, EditPen, CollectionTag, View,
+  CaretRight, ArrowLeftBold, MoreFilled
 } from '@element-plus/icons-vue'
 import TagDisplay from '@/components/TagDisplay.vue'
 import { getTagList, createTag, updateTag, deleteTag } from '@/api/tag'
@@ -530,16 +523,15 @@ async function saveTag() {
     if (isNewTag.value) {
       const apiTag = await createTag(storeToApi(currentTag.value))
       const saved = apiToStore(apiTag)
-      tags.value.push(saved)
-      currentTag.value = { ...saved }
       isNewTag.value = false
+      await fetchTags()
+      currentTag.value = { ...(tags.value.find(t => t.id === saved.id) || saved) }
       ElMessage.success('标签已创建')
     } else {
-      const apiTag = await updateTag(currentTag.value.id, storeToApi(currentTag.value))
-      const saved = apiToStore(apiTag)
-      const idx = tags.value.findIndex(t => t.id === currentTag.value.id)
-      if (idx !== -1) tags.value[idx] = saved
-      currentTag.value = { ...saved }
+      const savedId = currentTag.value.id
+      await updateTag(savedId, storeToApi(currentTag.value))
+      await fetchTags()
+      currentTag.value = { ...(tags.value.find(t => t.id === savedId) || currentTag.value) }
       ElMessage.success('标签已保存')
     }
   } catch {}

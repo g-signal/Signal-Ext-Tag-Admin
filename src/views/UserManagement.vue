@@ -5,7 +5,10 @@
         <h2 class="page-title">用户管理</h2>
         <p class="page-desc">管理系统用户及其标签信息</p>
       </div>
-      <el-button type="primary" :icon="Plus" @click="openAddDialog">添加用户</el-button>
+      <div style="display:flex;gap:8px;">
+        <el-button :icon="Refresh" @click="fetchUsers" :loading="loading">刷新</el-button>
+        <el-button type="primary" :icon="Plus" @click="openAddDialog">添加用户</el-button>
+      </div>
     </div>
 
     <el-table :data="users" v-loading="loading" border stripe class="data-table">
@@ -52,6 +55,19 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <div class="pagination-wrap">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50]"
+        :total="total"
+        layout="total, sizes, prev, pager, next"
+        background
+        @current-change="fetchUsers"
+        @size-change="fetchUsers"
+      />
+    </div>
 
     <!-- ── Add User Dialog ── -->
     <el-dialog
@@ -138,7 +154,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Plus, Delete, Edit as EditIcon } from '@element-plus/icons-vue'
+import { Plus, Delete, Edit as EditIcon, Refresh } from '@element-plus/icons-vue'
 import { getUserList, createUser, updateUser, deleteUser as apiDeleteUser } from '@/api/user'
 import { getTagList } from '@/api/tag'
 import TagDisplay from '@/components/TagDisplay.vue'
@@ -175,12 +191,16 @@ function apiUserToLocal(u) {
 const users = ref([])
 const loading = ref(false)
 const tagOptions = ref([])
+const currentPage = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
 
 async function fetchUsers() {
   loading.value = true
   try {
-    const data = await getUserList()
-    users.value = (data || []).map(apiUserToLocal)
+    const data = await getUserList(currentPage.value, pageSize.value)
+    users.value = (data.list || []).map(apiUserToLocal)
+    total.value = Number(data.total) || 0
   } finally {
     loading.value = false
   }
@@ -237,8 +257,8 @@ function confirmAdd() {
 async function deleteUser(id) {
   try {
     await apiDeleteUser(id)
-    users.value = users.value.filter(u => u.id !== id)
     ElMessage.success('已删除')
+    await fetchUsers()
   } catch {}
 }
 
@@ -335,5 +355,11 @@ function confirmEdit() {
 .empty-tag-hint {
   font-size: 12px;
   color: #dcdfe6;
+}
+
+.pagination-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>
