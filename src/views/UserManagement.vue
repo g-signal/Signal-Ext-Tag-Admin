@@ -236,10 +236,6 @@ function openAddDialog() {
 function confirmAdd() {
   addFormRef.value.validate(async (valid) => {
     if (!valid) return
-    if (users.value.some(u => u.id === addForm.id)) {
-      ElMessage.warning('用户 ID 已存在')
-      return
-    }
     try {
       await createUser({
         id: addForm.id,

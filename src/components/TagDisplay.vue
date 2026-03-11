@@ -52,11 +52,12 @@ const imageStyle = computed(() => ({
 <style scoped>
 .tag-text {
   display: inline-block;
-  padding: 2px 10px;
-  font-size: 12px;
+  padding: 3px 5px;
+  font-size: 10px;
   font-weight: 500;
   white-space: nowrap;
-  line-height: 1.6;
+  line-height: 1;
+  transform: scale(0.9);
   vertical-align: middle;
 }
 

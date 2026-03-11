@@ -223,10 +223,6 @@ function openAddDialog() {
 function confirmAdd() {
   addFormRef.value.validate(async (valid) => {
     if (!valid) return
-    if (groups.value.some(g => g.id === addForm.id)) {
-      ElMessage.warning('群组 ID 已存在')
-      return
-    }
     try {
       await createGroup({
         id: addForm.id,

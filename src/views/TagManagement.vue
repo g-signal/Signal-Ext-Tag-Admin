@@ -293,7 +293,7 @@
           <!-- Scene 2: User list row -->
           <div class="scene-block">
             <div class="scene-title">
-              <span class="scene-dot dot-user"></span>用户管理列表
+              <span class="scene-dot dot-user"></span>会话列表
             </div>
             <div class="scene-content scene-content-chat">
               <div class="mock-chat-item">
@@ -316,9 +316,6 @@
 
           <!-- Scene 3: Group list row -->
           <div class="scene-block">
-            <div class="scene-title">
-              <span class="scene-dot dot-group"></span>群组管理列表
-            </div>
             <div class="scene-content scene-content-notification">
               <div class="mock-notification-item">
                 <div class="mock-notif-avatar">
@@ -328,10 +325,10 @@
                 </div>
                 <div class="mock-notif-content">
                   <div class="mock-notif-top">
-                    <span class="mock-notif-name">核心用户群</span>
+                    <span class="mock-notif-name">某某用户群</span>
                     <TagDisplay :tag="currentTag" />
                   </div>
-                  <div class="mock-notif-message">共 128 名成员</div>
+                  <div class="mock-notif-message">You receivedasecure message</div>
                 </div>
                 <div class="mock-notif-date">Feb 5</div>
               </div>
@@ -424,8 +421,8 @@ function storeToApi(t) {
     backgroundColor: t.background_color || null,
     color: t.color || null,
     opacity: t.opacity ?? 1,
-    borderWidth: t.border_width || null,
-    borderRadius: t.border_radius || null,
+    borderWidth: t.border_width ?? null,
+    borderRadius: t.border_radius ?? null,
     borderColor: t.border_color || null,
     borderStyle: t.border_style || null,
     priority: t.priority ?? 0
