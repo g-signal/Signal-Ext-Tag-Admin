@@ -242,7 +242,7 @@ const addRules = {
   id: [{ required: true, message: '请输入用户 ID', trigger: 'blur' }],
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+    { pattern: /^\+?[1-9]\d{1,14}$/, message: '请输入有效的 E.164 格式电话号码', trigger: 'blur' }
   ]
 }
 
@@ -297,7 +297,7 @@ const editForm = reactive({ id: '', phone: '', remark: '' })
 const editRules = {
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+    { pattern: /^\+?[1-9]\d{1,14}$/, message: '请输入有效的 E.164 格式电话号码', trigger: 'blur' }
   ]
 }
 
