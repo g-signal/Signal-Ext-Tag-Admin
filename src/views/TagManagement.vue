@@ -24,7 +24,8 @@
             :class="{ 'is-active': currentTag?.id === tag.id }"
             @click="selectTag(tag)"
           >
-            <div class="list-item-tag">
+            <div class="list-item-content">
+              <div class="list-item-name">{{ tag.name }}</div>
               <TagDisplay :tag="tag" />
             </div>
             <div class="list-item-ops">
@@ -504,6 +505,11 @@ function onTypeChange() {
 }
 
 function handleImageChange(file) {
+  const maxSize = 2 * 1024 * 1024 // 2MB
+  if (file.size > maxSize) {
+    ElMessage.error('图片大小不能超过 2MB')
+    return
+  }
   const reader = new FileReader()
   reader.onload = (e) => {
     const img = new Image()
@@ -647,7 +653,7 @@ function handleDelete(id) {
 
 /* ── Left list ── */
 .panel-list {
-  width: 220px;
+  width: 250px;
   border-right: 1px solid #e4e7ed;
   flex-shrink: 0;
 }
@@ -690,10 +696,25 @@ function handleDelete(id) {
   border-color: #b3d8ff;
 }
 
-.list-item-tag {
+.list-item-content {
   flex: 1;
   overflow: hidden;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list-item-name {
+  font-size: 11px;
+  color: #606266;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 110px;
+  /* margin-right: 5px; */
 }
 
 .list-item-ops {

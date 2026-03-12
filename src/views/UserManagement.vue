@@ -31,7 +31,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="140" fixed="right" align="center">
+      <el-table-column label="操作" width="250" fixed="right" align="center">
         <template #default="{ row }">
           <el-button
             link
@@ -41,6 +41,15 @@
             @click="openEditDialog(row)"
           >
             编辑
+          </el-button>
+          <el-divider direction="vertical" />
+          <el-button
+            link
+            size="small"
+            :icon="CollectionTag"
+            @click="openTagDialog(row)"
+          >
+            标签
           </el-button>
           <el-divider direction="vertical" />
           <el-button link type="danger" size="small" :icon="Delete" @click="deleteUser(row.id)">删除</el-button>
@@ -91,9 +100,6 @@
             show-word-limit
           />
         </el-form-item>
-        <el-form-item label="标签">
-          <TagSelector v-model="addForm.tagIds" :options="tagOptions" />
-        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="addDialogVisible = false">取消</el-button>
@@ -131,13 +137,32 @@
             show-word-limit
           />
         </el-form-item>
-        <el-form-item label="标签">
-          <TagSelector v-model="editForm.tagIds" :options="tagOptions" />
-        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="editDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="confirmEdit" :loading="submitting">保存修改</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ── Tag Dialog ── -->
+    <el-dialog
+      v-model="tagDialogVisible"
+      title="设置标签"
+      width="500px"
+      align-center
+      destroy-on-close
+    >
+      <el-form label-width="76px" style="padding: 8px 0;">
+        <el-form-item label="用户 ID">
+          <el-input :value="tagForm.id" disabled />
+        </el-form-item>
+        <el-form-item label="标签" class="tag-select">
+          <TagSelector v-model="tagForm.tagIds" :options="tagOptions" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="tagDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmTagUpdate" :loading="submitting">保存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -146,7 +171,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Delete, Edit as EditIcon, Refresh } from '@element-plus/icons-vue'
+import { Plus, Delete, Edit as EditIcon, Refresh, CollectionTag } from '@element-plus/icons-vue'
 import { getUserList, createUser, updateUser, deleteUser as apiDeleteUser } from '@/api/user'
 import { getTagList } from '@/api/tag'
 import TagDisplay from '@/components/TagDisplay.vue'
@@ -211,7 +236,7 @@ onMounted(async () => {
 // ── Add dialog ────────────────────────────────
 const addDialogVisible = ref(false)
 const addFormRef = ref()
-const addForm = reactive({ id: '', phone: '', remark: '', tagIds: [] })
+const addForm = reactive({ id: '', phone: '', remark: '' })
 
 const addRules = {
   id: [{ required: true, message: '请输入用户 ID', trigger: 'blur' }],
@@ -222,7 +247,7 @@ const addRules = {
 }
 
 function openAddDialog() {
-  Object.assign(addForm, { id: '', phone: '', remark: '', tagIds: [] })
+  Object.assign(addForm, { id: '', phone: '', remark: '' })
   addDialogVisible.value = true
 }
 
@@ -235,7 +260,7 @@ function confirmAdd() {
         id: addForm.id,
         phoneNumber: addForm.phone,
         remark: addForm.remark,
-        tagIds: [...addForm.tagIds]
+        tagIds: []
       })
       ElMessage.success('添加成功')
       addDialogVisible.value = false
@@ -267,7 +292,7 @@ async function deleteUser(id) {
 // ── Edit dialog ───────────────────────────────
 const editDialogVisible = ref(false)
 const editFormRef = ref()
-const editForm = reactive({ id: '', phone: '', remark: '', tagIds: [] })
+const editForm = reactive({ id: '', phone: '', remark: '' })
 
 const editRules = {
   phone: [
@@ -280,8 +305,7 @@ function openEditDialog(row) {
   Object.assign(editForm, {
     id: row.id,
     phone: row.phone,
-    remark: row.remark || '',
-    tagIds: [...(row.tagIds || [])]
+    remark: row.remark || ''
   })
   editDialogVisible.value = true
 }
@@ -294,7 +318,7 @@ function confirmEdit() {
       await updateUser(editForm.id, {
         phoneNumber: editForm.phone,
         remark: editForm.remark,
-        tagIds: [...editForm.tagIds]
+        tagIds: users.value.find(u => u.id === editForm.id)?.tagIds || []
       })
       ElMessage.success('修改已保存')
       editDialogVisible.value = false
@@ -302,6 +326,36 @@ function confirmEdit() {
     } catch {} finally {
       submitting.value = false
     }
+  })
+}
+
+// ── Tag dialog ────────────────────────────────
+const tagDialogVisible = ref(false)
+const tagForm = reactive({ id: '', tagIds: [] })
+
+function openTagDialog(row) {
+  Object.assign(tagForm, {
+    id: row.id,
+    tagIds: [...(row.tagIds || [])]
+  })
+  tagDialogVisible.value = true
+}
+
+function confirmTagUpdate() {
+  submitting.value = true
+  const user = users.value.find(u => u.id === tagForm.id)
+  updateUser(tagForm.id, {
+    phoneNumber: user?.phone || '',
+    remark: user?.remark || '',
+    tagIds: [...tagForm.tagIds]
+  }).then(() => {
+    ElMessage.success('标签已更新')
+    tagDialogVisible.value = false
+    fetchUsers()
+  }).catch(() => {
+    ElMessage.error('更新失败')
+  }).finally(() => {
+    submitting.value = false
   })
 }
 </script>

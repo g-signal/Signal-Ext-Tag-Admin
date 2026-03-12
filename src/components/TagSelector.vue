@@ -5,27 +5,34 @@
       <router-link to="/admin/tags" @click.stop>Tag 管理</router-link>
       中创建标签
     </div>
-    <div v-else class="tag-options">
-      <div
+    <el-select
+      v-else
+      :model-value="modelValue"
+      @update:model-value="emit('update:modelValue', $event)"
+      multiple
+      collapse-tags
+      collapse-tags-tooltip
+      filterable
+      placeholder="请选择标签"
+      popper-class="tag-selector-container"
+      style="width: 100%"
+    >
+      <el-option
         v-for="tag in displayTags"
         :key="tag.id"
-        class="tag-option"
-        :class="{ 'is-selected': modelValue.includes(tag.id) }"
-        @click="toggle(tag.id)"
+        :label="tag.name"
+        :value="tag.id"
       >
-        <TagDisplay :tag="tag" />
-        <el-icon v-if="modelValue.includes(tag.id)" class="check-icon"><Check /></el-icon>
-      </div>
-    </div>
-    <div v-if="modelValue.length" class="selected-hint">
-      已选 {{ modelValue.length }} 个标签
-    </div>
+        <div class="option-content">
+          <span style="margin-right: 10px;">{{ tag.name }}</span> <TagDisplay :tag="tag" />
+        </div>
+      </el-option>
+    </el-select>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { Check } from '@element-plus/icons-vue'
 import TagDisplay from '@/components/TagDisplay.vue'
 
 const props = defineProps({
@@ -42,24 +49,16 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const displayTags = computed(() => props.options)
-
-function toggle(tagId) {
-  const current = [...props.modelValue]
-  const idx = current.indexOf(tagId)
-  if (idx === -1) {
-    current.push(tagId)
-  } else {
-    current.splice(idx, 1)
-  }
-  emit('update:modelValue', current)
-}
 </script>
 
 <style scoped>
 .tag-selector {
   width: 100%;
 }
-
+.tag-selector-container .el-select-dropdown__item {
+  display: flex;
+  align-items: center;
+}
 .no-tags-hint {
   font-size: 12px;
   color: #909399;
@@ -75,44 +74,8 @@ function toggle(tagId) {
   text-decoration: underline;
 }
 
-.tag-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px 0;
-}
-
-.tag-option {
-  position: relative;
-  cursor: pointer;
-  border-radius: 6px;
-  padding: 5px 8px;
-  border: 1.5px solid transparent;
-  transition: border-color 0.15s, background 0.15s;
+.option-content {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: #f5f7fa;
-}
-
-.tag-option:hover {
-  border-color: #c6e2ff;
-  background: #ecf5ff;
-}
-
-.tag-option.is-selected {
-  border-color: #409eff;
-  background: #ecf5ff;
-}
-
-.check-icon {
-  font-size: 12px;
-  color: #409eff;
-}
-
-.selected-hint {
-  font-size: 11px;
-  color: #909399;
-  margin-top: 6px;
 }
 </style>
