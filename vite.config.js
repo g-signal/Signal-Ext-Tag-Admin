@@ -15,7 +15,9 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://192.168.1.24:8081',
+        // target: 'http://192.168.1.24:8081',
+        target: 'https://ext-tag-admin.imba-test.com:8443',
+        secure: false,
         changeOrigin: true
       }
     }
