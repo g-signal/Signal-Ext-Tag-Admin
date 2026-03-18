@@ -179,7 +179,7 @@
                   <div class="upload-inner">
                     <el-icon style="font-size: 28px; color: #c0c4cc;"><Upload /></el-icon>
                     <p>点击或拖拽图片到此处</p>
-                    <p class="upload-hint">支持 JPG / PNG / GIF / SVG / WebP，尺寸 45×45 px</p>
+                    <p class="upload-hint">支持 JPG / PNG /  SVG，尺寸 32×32 px</p>
                   </div>
                 </el-upload>
               </div>
