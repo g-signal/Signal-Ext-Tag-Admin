@@ -85,9 +85,9 @@
         label-width="76px"
         style="padding: 8px 0;"
       >
-        <el-form-item label="用户 ID" prop="id">
+        <!-- <el-form-item label="用户 ID" prop="id">
           <el-input v-model="addForm.id" placeholder="请输入用户 ID" clearable />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="电话" prop="phone">
           <el-input v-model="addForm.phone" placeholder="请输入手机号" clearable />
         </el-form-item>
