@@ -5,8 +5,17 @@
         <h2 class="page-title">用户管理</h2>
         <p class="page-desc">管理系统用户及其标签信息</p>
       </div>
-      <div style="display:flex;gap:8px;">
-        <el-button :icon="Refresh" @click="fetchUsers" :loading="loading">刷新</el-button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <el-input
+          v-model="searchPhone"
+          placeholder="电话搜索"
+          clearable
+          style="width:200px;"
+          @clear="onSearch"
+          @keyup.enter="onSearch"
+        />
+        <el-button :icon="Search" @click="onSearch" :loading="loading">搜索</el-button>
+        <!-- <el-button :icon="Refresh" @click="fetchUsers" >刷新</el-button> -->
         <el-button type="primary" :icon="Plus" @click="openAddDialog">添加用户</el-button>
       </div>
     </div>
@@ -18,6 +27,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="phone" label="电话" width="160" />
+     
       <el-table-column prop="remark" label="备注" min-width="140">
         <template #default="{ row }">
           <span class="remark-text">{{ row.remark || '—' }}</span>
@@ -29,6 +39,20 @@
             <TagDisplay v-for="tag in row.tags" :key="tag.id" :tag="tag" />
             <span v-if="!row.tags?.length" class="empty-tag-hint">暂无标签</span>
           </div>
+        </template>
+      </el-table-column>
+       <el-table-column label="是否锁定" width="120" >
+        <template #default="{ row }">
+          <el-switch
+            v-model="row.blocked"
+            :loading="row._blockLoading"
+            active-color="#f56c6c"
+            inactive-color="#f56c6c"
+            :active-value="true"
+            :inactive-value="false"
+            :active-text="row.blocked ? '是' : '否'"
+            @change="(val) => toggleBlock(row, val)"
+          />
         </template>
       </el-table-column>
       <el-table-column label="操作" width="250" fixed="right" align="center">
@@ -171,8 +195,8 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Delete, Edit as EditIcon, Refresh, CollectionTag } from '@element-plus/icons-vue'
-import { getUserList, createUser, updateUser, deleteUser as apiDeleteUser } from '@/api/user'
+import { Plus, Delete, Edit as EditIcon, Refresh, CollectionTag, Search } from '@element-plus/icons-vue'
+import { getUserList, createUser, updateUser, deleteUser as apiDeleteUser, blockUser } from '@/api/user'
 import { getTagList } from '@/api/tag'
 import TagDisplay from '@/components/TagDisplay.vue'
 import TagSelector from '@/components/TagSelector.vue'
@@ -200,8 +224,10 @@ function apiUserToLocal(u) {
     id: u.id,
     phone: u.phoneNumber || '',
     remark: u.remark || '',
+    blocked: u.blocked ?? false,
     tags: (u.tags || []).map(apiTagToStore),
-    tagIds: (u.tags || []).map(t => String(t.id))
+    tagIds: (u.tags || []).map(t => String(t.id)),
+    _blockLoading: false
   }
 }
 
@@ -212,16 +238,22 @@ const tagOptions = ref([])
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
+const searchPhone = ref('')
 
 async function fetchUsers() {
   loading.value = true
   try {
-    const data = await getUserList(currentPage.value, pageSize.value)
+    const data = await getUserList(currentPage.value, pageSize.value, searchPhone.value.trim())
     users.value = (data.list || []).map(apiUserToLocal)
     total.value = Number(data.total) || 0
   } finally {
     loading.value = false
   }
+}
+
+function onSearch() {
+  currentPage.value = 1
+  fetchUsers()
 }
 
 onMounted(async () => {
@@ -269,6 +301,19 @@ function confirmAdd() {
       submitting.value = false
     }
   })
+}
+
+async function toggleBlock(row, blocked) {
+  row._blockLoading = true
+  try {
+    await blockUser(row.id, blocked)
+    row.blocked = blocked
+    ElMessage.success('操作成功')
+  } catch {
+    ElMessage.error('操作失败')
+  } finally {
+    row._blockLoading = false
+  }
 }
 
 async function deleteUser(id) {
