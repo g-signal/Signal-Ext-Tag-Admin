@@ -12,7 +12,7 @@
     </div>
 
     <el-table :data="groups" v-loading="loading" border stripe class="data-table">
-      <el-table-column prop="id" label="ID" width="130">
+      <el-table-column prop="id" label="ID" width="300">
         <template #default="{ row }">
           <span class="mono-text">{{ row.id }}</span>
         </template>
