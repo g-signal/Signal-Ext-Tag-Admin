@@ -41,13 +41,12 @@
           </div>
         </template>
       </el-table-column>
-       <el-table-column label="是否锁定" width="120" >
+      <el-table-column label="是否锁定" width="120" >
         <template #default="{ row }">
           <el-switch
             v-model="row.blocked"
             :loading="row._blockLoading"
             active-color="#f56c6c"
-            inactive-color="#f56c6c"
             :active-value="true"
             :inactive-value="false"
             :active-text="row.blocked ? '是' : '否'"
@@ -112,8 +111,8 @@
         <!-- <el-form-item label="用户 ID" prop="id">
           <el-input v-model="addForm.id" placeholder="请输入用户 ID" clearable />
         </el-form-item> -->
-        <el-form-item label="电话" prop="phone">
-          <el-input v-model="addForm.phone" placeholder="请输入手机号" clearable />
+        <el-form-item label="电话" prop="phone"   >
+          <el-input v-model="addForm.phone"  placeholder="请输入手机号，格式：+8613900000001、+852123456" clearable />
         </el-form-item>
         <el-form-item label="备注">
           <el-input
@@ -273,8 +272,8 @@ const addForm = reactive({ id: '', phone: '', remark: '' })
 const addRules = {
   id: [{ required: true, message: '请输入用户 ID', trigger: 'blur' }],
   phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^\+?[1-9]\d{1,14}$/, message: '请输入有效的 E.164 格式电话号码', trigger: 'blur' }
+    { required: true, message: '请输入手机号，格式：+8613900000001、+852123456', trigger: 'blur' },
+    { pattern: /^\+[1-9]\d{6,14}$/, message: '请输入有效的 E.164 格式：+8613900000001、+852123456', trigger: 'blur' }
   ]
 }
 
@@ -342,7 +341,7 @@ const editForm = reactive({ id: '', phone: '', remark: '' })
 const editRules = {
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^\+?[1-9]\d{1,14}$/, message: '请输入有效的 E.164 格式电话号码', trigger: 'blur' }
+    { pattern: /^\+[1-9]\d{1,14}$/, message: '请输入有效的 E.164 格式：+8613900000001、+852123456', trigger: 'blur' }
   ]
 }
 
