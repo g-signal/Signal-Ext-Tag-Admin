@@ -273,7 +273,7 @@ const addRules = {
   id: [{ required: true, message: '请输入用户 ID', trigger: 'blur' }],
   phone: [
     { required: true, message: '请输入手机号，格式：+8613900000001、+852123456', trigger: 'blur' },
-    { pattern: /^\+[1-9]\d{6,14}$/, message: '请输入有效的 E.164 格式：+8613900000001、+852123456', trigger: 'blur' }
+    { pattern:  /^\+[1-9]\d{1,14}$/, message: '请输入有效的 E.164 格式：+8613900000001、+852123456', trigger: 'blur' }
   ]
 }
 
