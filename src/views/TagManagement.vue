@@ -914,7 +914,7 @@ function handleDelete(id) {
 .preview-img {
   max-width: 140px;
   max-height: 100px;
-  border-radius: 6px;
+  /* border-radius: 6px; */
   border: 1px solid #e4e7ed;
   object-fit: contain;
 }
