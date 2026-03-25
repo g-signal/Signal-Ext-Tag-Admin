@@ -63,7 +63,7 @@ const imageStyle = computed(() => ({
 
 .tag-image {
   height: 12px;
-  width: 12px;
+  width: auto;
   vertical-align: middle;
   object-fit: contain;
 }
