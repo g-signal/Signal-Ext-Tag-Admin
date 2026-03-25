@@ -141,7 +141,7 @@
               <span class="field-label" style="padding-top: 6px;">图片</span>
               <div class="image-area">
                 <div class="image-spec-hint">
-                  仅支持图片格式，且尺寸必须为 <b>32 × 32 px</b>, 大小不能超过 20kb
+                  仅支持图片格式，且尺寸必须为 高：36px、宽：小于150px, 大小不能超过 20kb
                 </div>
                 <div v-if="currentTag.img_base64" class="image-preview">
                   <img :src="currentTag.img_base64" class="preview-img" />
@@ -172,14 +172,14 @@
                   :auto-upload="false"
                   :show-file-list="false"
                   :on-change="handleImageChange"
-                  accept="image/*"
+                  accept="image/png, image/jpg, image/jpeg"
                   drag
                   class="image-uploader"
                 >
                   <div class="upload-inner">
                     <el-icon style="font-size: 28px; color: #c0c4cc;"><Upload /></el-icon>
                     <p>点击或拖拽图片到此处</p>
-                    <p class="upload-hint">支持 JPG / PNG /  SVG，尺寸 32×32 px</p>
+                    <p class="upload-hint">支持 JPG / PNG /  SVG，尺寸高：36px、宽：小于150px</p>
                   </div>
                 </el-upload>
               </div>
@@ -518,8 +518,8 @@ function handleImageChange(file) {
   reader.onload = (e) => {
     const img = new Image()
     img.onload = () => {
-      if (img.width !== 32 || img.height !== 32) {
-        ElMessage.error(`图片尺寸必须为 32×32 px，当前为 ${img.width}×${img.height} px`)
+      if (img.width == 0 || img.width > 150 || img.height !== 36) {
+        ElMessage.error(`图片尺寸必须为 高：36px、宽小于150px，当前为 ${img.width}×${img.height} px`)
         return
       }
       if (currentTag.value) currentTag.value.img_base64 = e.target.result
