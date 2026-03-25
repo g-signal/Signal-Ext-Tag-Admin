@@ -44,8 +44,8 @@ const textStyle = computed(() => {
 })
 
 const imageStyle = computed(() => ({
-  borderRadius: (props.tag.border_radius ?? 3) + 'px',
-  opacity: props.tag.opacity ?? 1
+  // borderRadius: (props.tag.border_radius ?? 3) + 'px',
+  // opacity: props.tag.opacity ?? 1
 }))
 </script>
 
