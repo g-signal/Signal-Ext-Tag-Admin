@@ -21,7 +21,7 @@
     </div>
 
     <el-table :data="users" v-loading="loading" border stripe class="data-table">
-      <el-table-column prop="id" label="ID" width="300">
+      <el-table-column prop="id" label="ID" min-width="300">
         <template #default="{ row }">
           <span class="mono-text">{{ row.id }}</span>
         </template>
@@ -33,7 +33,7 @@
           <span class="remark-text">{{ row.remark || '—' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="标签" min-width="220">
+      <el-table-column label="标签" min-width="300">
         <template #default="{ row }">
           <div class="tag-cell">
             <TagDisplay v-for="tag in row.tags" :key="tag.id" :tag="tag" />
