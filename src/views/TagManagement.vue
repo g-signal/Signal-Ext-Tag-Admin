@@ -141,7 +141,7 @@
               <span class="field-label" style="padding-top: 6px;">图片</span>
               <div class="image-area">
                 <div class="image-spec-hint">
-                  仅支持图片格式，且尺寸必须为 高：36px、宽：小于150px, 大小不能超过 20kb
+                  仅支持图片格式，且尺寸必须为高小于 96px、宽小于 480px
                 </div>
                 <div v-if="currentTag.img_base64" class="image-preview">
                   <img :src="currentTag.img_base64" class="preview-img" />
@@ -179,7 +179,7 @@
                   <div class="upload-inner">
                     <el-icon style="font-size: 28px; color: #c0c4cc;"><Upload /></el-icon>
                     <p>点击或拖拽图片到此处</p>
-                    <p class="upload-hint">支持 JPG / PNG /  SVG，尺寸高：36px、宽：小于150px</p>
+                    <p class="upload-hint">支持 JPG / PNG，尺寸高小于 96px、宽小于 480px</p>
                   </div>
                 </el-upload>
               </div>
@@ -509,17 +509,17 @@ function handleImageChange(file) {
     ElMessage.error('只能上传图片格式文件')
     return
   }
-  const maxSize = 20 * 1024 // 20KB
-  if (file.size > maxSize) {
-    ElMessage.error('图片大小不能超过 20KB')
-    return
-  }
+  // const maxSize = 20 * 1024 // 20KB
+  // if (file.size > maxSize) {
+  //   ElMessage.error('图片大小不能超过 20KB')
+  //   return
+  // }
   const reader = new FileReader()
   reader.onload = (e) => {
     const img = new Image()
     img.onload = () => {
-      if (img.width == 0 || img.width > 150 || img.height !== 36) {
-        ElMessage.error(`图片尺寸必须为 高：36px、宽小于150px，当前为 ${img.width}×${img.height} px`)
+      if (img.width == 0 || img.height == 0 || img.width > 480 || img.height > 96) {
+        ElMessage.error(`图片尺寸必须为高小于 96px、宽小于 480px，当前为 ${img.width}×${img.height} px`)
         return
       }
       if (currentTag.value) currentTag.value.img_base64 = e.target.result
